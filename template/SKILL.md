@@ -1,6 +1,6 @@
 ---
 name: skill-name
-description: What this skill does and exactly when Claude should use it. Be specific — this line decides when it triggers.
+description: What this skill does and exactly when the agent should use it. Be specific — this line decides when it triggers.
 ---
 
 # Skill Name

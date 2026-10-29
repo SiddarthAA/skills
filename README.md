@@ -1,64 +1,41 @@
 <div align="center">
 
-<br>
+# skills
 
-# `skill`
+**skills to make fucking bag.**
 
-**A personal arsenal of Claude skills — tuned workflows for shipping banger work.**
-
-<br>
-
-![Claude Code](https://img.shields.io/badge/Claude_Code-skills-D97757?style=flat-square&labelColor=1a1a1a)
-![Status](https://img.shields.io/badge/status-shipping-2ea043?style=flat-square&labelColor=1a1a1a)
-![Repo](https://img.shields.io/badge/repo-private-8b949e?style=flat-square&labelColor=1a1a1a)
-
-<br>
-
-[Skills](#skills) · [Install](#install) · [New skill](#new-skill) · [Anatomy](#anatomy)
+<sub>harness-agnostic · plain markdown · drop-in</sub>
 
 </div>
 
-<br>
+---
 
-## Skills
+### Skills
 
 | Skill | What it does |
 | :-- | :-- |
-| *coming soon* | First drop incoming. |
+| *soon* | First drop incoming. |
 
-## Install
+### Use
+
+Each skill is a folder with a `SKILL.md`. Point any agent harness at it.
 
 ```bash
-gh repo clone SiddarthAA/skill ~/skill
-mkdir -p ~/.claude/skills
-ln -sf ~/skill/skills/* ~/.claude/skills/
+gh repo clone SiddarthAA/skills ~/skills
+ln -sf ~/skills/skills/* ~/.claude/skills/   # or your harness's skills dir
 ```
 
-`git pull` updates everything in place. Re-run the `ln` after adding a skill.
-
-## New skill
+### Add
 
 ```bash
 cp -r template skills/<name>
 ```
 
-Fill in `SKILL.md`, add a row to the table above, ship.
-
-## Anatomy
+### Layout
 
 ```
-skill/
-├── skills/
-│   └── <name>/
-│       ├── SKILL.md       # frontmatter + instructions (required)
-│       ├── scripts/       # helpers the skill runs (optional)
-│       └── references/    # docs loaded on demand (optional)
-└── template/
-    └── SKILL.md           # copy me
+skills/<name>/
+├── SKILL.md       # frontmatter + instructions
+├── scripts/       # optional
+└── references/    # optional
 ```
-
-<br>
-
-<div align="center">
-<sub>crafted with Claude · shipped by <a href="https://github.com/SiddarthAA">SiddarthAA</a></sub>
-</div>

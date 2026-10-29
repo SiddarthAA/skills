@@ -1,41 +1,22 @@
-<div align="center">
+<img src="assets/banner.png" alt="skills — skills to make fucking bag" width="100%">
 
-# skills
+<br>
 
-**skills to make fucking bag.**
+### skills
 
-<sub>harness-agnostic · plain markdown · drop-in</sub>
-
-</div>
-
----
-
-### Skills
-
-| Skill | What it does |
+| skill | does |
 | :-- | :-- |
-| *soon* | First drop incoming. |
+| *soon* | first drop incoming |
 
-### Use
-
-Each skill is a folder with a `SKILL.md`. Point any agent harness at it.
+### use
 
 ```bash
 gh repo clone SiddarthAA/skills ~/skills
-ln -sf ~/skills/skills/* ~/.claude/skills/   # or your harness's skills dir
+ln -sf ~/skills/skills/* ~/.claude/skills/   # or any harness's skills dir
 ```
 
-### Add
+### add
 
 ```bash
-cp -r template skills/<name>
-```
-
-### Layout
-
-```
-skills/<name>/
-├── SKILL.md       # frontmatter + instructions
-├── scripts/       # optional
-└── references/    # optional
+cp -r template skills/<name>   # fill in SKILL.md, ship
 ```

@@ -17,11 +17,20 @@ function R.save() return R.pm():SaveProject() end
 local function page(name) if resolve:GetCurrentPage() ~= name then resolve:OpenPage(name) end end
 
 -- ── media pool ───────────────────────────────────────────────────────────────
--- Clip by exact name, searching every bin.
+-- Clip by exact name, searching every bin. Prefers clips backed by a file: compound clips and imported
+-- timelines can carry the same name (a compound "talk_b.mov" shadowed the real file once).
 function R.find(name, folder)
-  folder = folder or R.mp():GetRootFolder()
-  for _, c in ipairs(folder:GetClipList()) do if c:GetName() == name then return c end end
-  for _, f in ipairs(folder:GetSubFolderList()) do local r = R.find(name, f) if r then return r end end
+  local fallback
+  local function walk(f)
+    for _, c in ipairs(f:GetClipList()) do
+      if c:GetName() == name then
+        if (c:GetClipProperty("File Path") or "") ~= "" then return c end
+        fallback = fallback or c
+      end
+    end
+    for _, s in ipairs(f:GetSubFolderList()) do local r = walk(s) if r then return r end end
+  end
+  return walk(folder or R.mp():GetRootFolder()) or fallback
 end
 
 -- Bin under the root, created if missing.

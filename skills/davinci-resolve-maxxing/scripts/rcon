@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Type one line into Resolve's Lua Console (Linux/X11, xdotool) and screenshot the console.
+# Usage: rcon 'print(1)'   -> screenshot at $RCON_SHOT (default /tmp/rcon.png)
+# Refuses to type unless it finds the console window, so stray keystrokes never hit the timeline
+# (typed text in the main window fires shortcuts: "(" = Shift+9 opens Project Settings).
+XDO=$(command -v xdotool || command -v xdo) || { echo "rcon: xdotool missing (run install.sh)" >&2; exit 1; }
+console(){  # visible window titled exactly "resolve" that is big enough to be the console
+  local w
+  for w in $($XDO search --onlyvisible --name '^resolve$' 2>/dev/null); do
+    eval "$($XDO getwindowgeometry --shell "$w")"
+    (( WIDTH > 300 && HEIGHT > 200 )) && { echo "$w $X $Y $WIDTH $HEIGHT"; return; }
+  done
+}
+c=$(console)
+if [ -z "$c" ]; then
+  main=$($XDO search --onlyvisible --name '^DaVinci Resolve - ' | head -1)
+  [ -z "$main" ] && { echo "rcon: no open Resolve project window" >&2; exit 1; }
+  $XDO windowactivate --sync "$main"; $XDO key F6; sleep 2; c=$(console)  # F6 = Console on the stock Linux 21.1 keymap
+  if [ -z "$c" ]; then  # fallback: Workspace menu > Console (positions relative to the main window, 1854x1048 layout)
+    eval "$($XDO getwindowgeometry --shell "$main")"
+    $XDO mousemove $((X + 647)) $((Y + 9)) click 1; sleep 1
+    $XDO mousemove $((X + 658)) $((Y + 454)) click 1; sleep 2; c=$(console)
+  fi
+fi
+[ -z "$c" ] && { echo "rcon: could not open the Lua Console" >&2; exit 1; }
+read -r w x y cw ch <<<"$c"
+$XDO windowactivate --sync "$w"
+$XDO mousemove $((x + cw / 2)) $((y + ch - 12)) click 1; sleep 0.3
+$XDO type --delay 12 "$1"; $XDO key Return; sleep "${RCON_WAIT:-2}"
+import -window "$w" "${RCON_SHOT:-/tmp/rcon.png}" 2>/dev/null
+exit 0

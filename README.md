@@ -1,6 +1,6 @@
 <img src="assets/banner.png" alt="skills — skills to make fucking bag" width="100%">
 
-<br>
+<p align="center"><sub>harness-agnostic &nbsp;·&nbsp; plain markdown &nbsp;·&nbsp; drop-in</sub></p>
 
 ### skills
 

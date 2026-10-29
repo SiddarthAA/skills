@@ -1,4 +1,4 @@
-<img src="assets/banner.png" alt="skills — skills to make fucking bag" width="100%">
+<img src="assets/banner.png" alt="skills" width="100%">
 
 <p align="center"><sub>harness-agnostic &nbsp;·&nbsp; plain markdown &nbsp;·&nbsp; drop-in</sub></p>
 

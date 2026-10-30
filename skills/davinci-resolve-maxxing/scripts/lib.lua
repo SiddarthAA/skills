@@ -352,18 +352,20 @@ function R.fx(item, id, params)
   local main = t:FindMainInput(1)  -- nil for generators/titles: their output simply replaces the picture
   if main then main:ConnectTo(mo.Input:GetConnectedOutput() or comp:FindTool("MediaIn1").Output) end
   mo.Input:ConnectTo(t:FindMainOutput(1))  -- macros output on "MainOutput1", tools on "Output"
-  for k, v in pairs(params or {}) do
+  for k, v in pairs(params or {}) do  -- SetInput on a wrong ID is silently ignored: check it exists
+    assert(t[k], "no input '" .. k .. "' on " .. id .. "; R.inputs(tool) lists them")
     if type(v) == "table" and type(v[1]) == "table" then key(t, k, v) else t:SetInput(k, v) end
   end
   return t, comp
 end
 
--- A tool's settable inputs with current values (skips images/masks): find param IDs for R.fx.
+-- A tool's own settable inputs with current values (skips images, masks and the common Settings page): param IDs for R.fx.
 function R.inputs(tool)
   local o = {}
   for _, inp in ipairs(tool:GetInputList()) do
     local a = inp:GetAttrs()
-    if a.INPS_DataType ~= "Image" and a.INPS_DataType ~= "Mask" then  -- macros expose InputN: show the display name too
+    if a.INPS_DataType ~= "Image" and a.INPS_DataType ~= "Mask" and a.INPS_ICS_ControlPage ~= "Common" then
+      -- skips the shared Settings page; macros expose InputN, so show the display name too
       local name = (a.INPS_Name and a.INPS_Name ~= a.INPS_ID) and "(" .. a.INPS_Name .. ")" or ""
       o[#o + 1] = a.INPS_ID .. name .. "=" .. R.ser(inp[0])
     end

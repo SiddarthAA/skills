@@ -52,7 +52,11 @@ FL=$HOME/.local/share/DaVinciResolve/configs/Fairlight/Presets
 for kind in EQ DYN; do mkdir -p "$FL/$kind"; cp "$SKILL/assets/fairlight/$kind/"*.xml "$FL/$kind/"; done
 say "Fairlight presets in $FL (make more: fl_eq.py)"
 
-# 6. dependencies
+# 6. Resolve's 417 built-in Fusion templates as plain .setting files (R.fx pastes them; R.templates points here)
+DRFX=${RESOLVE_DIR:-/opt/resolve}/Fusion/Templates/Templates.drfx
+[ -f "$DRFX" ] && unzip -qo "$DRFX" -d "$B/templates" && say "templates in $B/templates (R.templates)"
+
+# 7. dependencies
 for c in ffmpeg ffprobe uv convert montage import; do command -v "$c" >/dev/null || say "WARNING: missing $c"; done
 [ -x /opt/resolve/bin/resolve ] || say "WARNING: Resolve not at /opt/resolve/bin/resolve (set RESOLVE_BIN)"
 echo "$PATH" | tr ':' '\n' | grep -qx "$BIN" || say "WARNING: add $BIN to PATH"

@@ -171,7 +171,10 @@ $S/finish.py master.mov --to reels --subs $W/captions.srt --size 72 --name 20261
    If you hand-edit the keep ranges after `analyze.py`, pass captions.py the SAME list you gave `R.keep` (a JSON array works).
 8. **Multicam podcast.** Build the speaker timeline from the transcript (who speaks when). Place each speaker's camera ranges on V1 with `R.place(..., {media = "video"})`, and keep one continuous mixed audio on A1. Switch when a new speaker talks for more than 1.5-2 s; wide shot every 30-60 s.
 9. **Levels.** `R.normalize(tl, audioItems, "EBU R128", -23)` evens out clip gain; `finish.py` does the final -14 LUFS (podcast feed: `--to podcast`, -16).
-10. **Dialogue EQ, compression, de-ess, ducking:** not scriptable on free. Apply in Fairlight by hand, or process the WAV with ffmpeg before import, e.g. `highpass=f=90,acompressor=threshold=-20dB:ratio=3:attack=10:release=150,deesser`.
+10. **Dialogue EQ, compression, de-ess, ducking:** no direct API, but a template route exists (`pages/fairlight.md`): apply a saved Fairlight
+    configuration preset with `R.project():ApplyFairlightPresetToCurrentTimeline("agent-talk-mix")` (EQ, compressor, inserts; make EQs with `fl_eq.py`),
+    and add the Ducker per timeline in the Inspector. Without a saved preset, process the WAV with ffmpeg before import, e.g.
+    `highpass=f=90,acompressor=threshold=-20dB:ratio=3:attack=10:release=150,deesser`.
 
 ## D. Event recap / ad (16:9 + 9:16 cutdowns)
 

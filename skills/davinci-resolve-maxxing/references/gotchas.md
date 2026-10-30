@@ -9,7 +9,8 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 |---|---|---|
 | `tl:CreateSubtitlesFromAudio()`, `item:TranscribeAudio()`, `AnalyzeForIntellisearch`, `GenerateSpeech`, voice isolation and other AI calls on **free** | Crashed Resolve (Qt fatal) [L]. Reported elsewhere as an upgrade dialog that blocks every later call [R] | `scripts/transcribe.py` (faster-whisper) for captions and word timings |
 | `tl:AutoAlignClips()` | Returned false once and crashed Resolve twice, a moment after the call [L] | Media-pool `R.sync(cam, mic)` (AutoSyncAudio, sample-accurate) [L] |
-| `pm:ArchiveProject(...)` with source or proxy media flags | SIGSEGV [R] | `pm:ExportProject(name, path.drp, false)` [L] |
+| `pm:ArchiveProject(...)` with source or proxy media flags | SIGSEGV [R]. With all flags false it returns false, no file [L] | `pm:ExportProject(name, path.drp, false)` [L] |
+| Studio-only calls: `DetectSceneCuts`, `PerformMulticamSmartSwitch`, `RemoveMotionBlur`, `PerformAudioClassification`, `AnalyzeForIntellisearch` | No crash, but the **"You have reached a limitation" upsell modal** opens, and while it's up later create calls silently return nil (CreateEmptyTimeline -> nil) [L] | Avoid; if `rv` warns about a dialog: `GUI_WIN='^Message$' gui key Escape` (= Not Yet). Full probe list: `capability-matrix.md` and the pages |
 | Switching pages (`OpenPage`) while playback runs | Hangs the main thread and all scripting [R] | Never start playback from script |
 | Project-settings preset writes on a never-saved project | Project can't be opened again [R] | `pm:SaveProject()` first |
 
@@ -41,7 +42,17 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | `SetLUT` with a path outside Resolve's master LUT folder returns false [L] | Install LUTs in `/opt/resolve/LUT/<sub>/` (Linux), call `p:RefreshLUTList()`, pass `"sub/name.cube"` |
 | `item:ExportLUT(...)` returned false [L] | Generate looks with `prep.py lut` |
 | Audio-only renders (preset "Audio Only" or `ExportVideo=false`) stayed "Ready" and never rendered [L] | Render the master, then `ffmpeg -i master.mov -vn -c:a pcm_s24le out.wav` |
-| SRT via API: `ImportMedia(srt)` works (Type=Subtitle), but `AppendToTimeline` places nothing [L]; there's no API to style captions | Captions: `finish.py --subs file.srt` (burn-in) or `R.title` per caption/word |
+| SRT: `AppendToTimeline` places nothing **without a subtitle track**; with one, `recordFrame` is ignored and cues land at SRT time + the timeline's current end. The SRT item is named without ".srt" [L] | `tl:AddTrack("subtitle")`, append the SRT FIRST on the empty timeline, burn in with `R.render{settings={ExportSubtitle=true, SubtitleFormat="BurnIn"}}` (`pages/edit.md`) |
+| **ResolveFX wired on `Input` render BLACK** (their image input is `Source`); macros output on `MainOutput1`, not `Output` [L] | `R.fx` (FindMainInput/FindMainOutput) |
+| **`comp:Paste()` returns false unless the comp is open in the Fusion page**; `Paste(nil)` pastes the CLIPBOARD; `bmd.readstring(s, x)` (2 args, e.g. via `assert`) returns nil [L] | `R.fx(item, "x.setting")` handles all three |
+| `SetInput` on a misspelled input ID is ignored silently [L] | `R.inputs(tool)` lists IDs; R.fx asserts |
+| `AppendToTimeline` with a source range past the clip's end succeeds (frozen frame, no handles); centred transitions then return nil [L] | `R.place` asserts the range |
+| A timeline with **no video items** can't render (Duration 0, AddRenderJob "") [L] | Carrier/black clip on V1 |
+| `LoadRenderPreset` doesn't reset a format/codec/name set earlier [L] | Set them explicitly every time (R.render) |
+| Fairlight config presets don't carry the Ducker (Track FX) [L] | Ducker per timeline, or cut-and-lower |
+| EQ preset XML: `BAND_FREQ` is ignored; Resolve reads `BAND_LIMITED_FREQ` (a log index) [L] | `fl_eq.py` |
+| DCTL as a LUT renders with a big "Studio" WATERMARK on free [L] | Bake .cube LUTs; look at the pixels after anything Studio-flavoured |
+| `FlattenMulticam` returns nothing and does nothing; `InsertAudioToCurrentTrackAtPlayhead` true but no clip; `RenderWithQuickExport` nil; OTIO import nil [L] | Cut angles as clips; `R.place`; `R.render`; FCPXML |
 
 ## Media and analysis traps
 
@@ -64,3 +75,8 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 - **Long API calls** (renders, imports) block the bridge: use `RV_TIMEOUT=900 rv ...`. If `rv` times out, look for a dialog before retrying: `xdotool search --onlyvisible --class resolve` and the window names.
 - **Debug log:** `~/.local/share/DaVinciResolve/logs/ResolveDebug.txt` (Fusion ERRORs such as missing fonts, plus crash dumps). After a crash it moves to `logs/LogArchive/ResolveDebug_C1.txt` [L].
 - **Edits are saved by Resolve automatically**, but call `R.save()` before risky operations.
+- **After a laptop suspend, CUDA dies** (cuInit 999) and Resolve shows "Unsupported GPU Processing Mode" at launch. Fix with Resolve closed:
+  `sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm` (the user runs it) [L].
+- **Resolve reuses top-level X windows: titles go stale**, so identify panels by screenshot; popups are windows titled `resolve`; popup list clicks can
+  miss (use the keyboard); drags need gradual motion (`gui drag`) [L]. `references/gui.md`.
+- Right after `OpenPage`, the first `SetCurrentTimecode` can be dropped, and on the Fusion page it is ignored [L]: `R.seek`.

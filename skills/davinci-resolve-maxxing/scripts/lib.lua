@@ -5,6 +5,7 @@
 local R = {}
 local HOME = os.getenv("HOME")
 R.dir = HOME .. "/resolve-bridge/"
+R.templates = R.dir .. "templates/"  -- built-in Fusion templates unpacked by install.sh: R.fx(item, R.templates .. "Edit/Effects/CCTV.setting")
 R.assets = R.dir .. "assets/"
 
 -- ── handles ──────────────────────────────────────────────────────────────────

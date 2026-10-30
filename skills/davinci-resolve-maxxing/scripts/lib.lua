@@ -48,7 +48,7 @@ function R.import(paths, bin)
   local todo = {}
   for _, p in ipairs(paths) do
     local name = p:match("([^/]+)$")
-    local have = R.find(name)
+    local have = R.find(name) or R.find((name:gsub("%.srt$", "")))  -- SRT items are named without the extension
     if have then out[#out + 1] = have else todo[#todo + 1] = p end
   end
   if #todo > 0 then
@@ -147,7 +147,10 @@ function R.place(tl, clip, o)
   o = o or {}
   if type(clip) == "string" then clip = assert(R.find(clip), "no clip " .. clip) end
   local from = o.from or 0
-  local len = o.len or (R.frames(clip) - from)
+  local total = R.frames(clip)
+  local len = o.len or (total - from)
+  -- past the source end AppendToTimeline still "succeeds" with a frozen last frame and no handles
+  assert(from + len <= total, string.format("%s: source range %d+%d is past its %d frames", clip:GetName(), from, len, total))
   local track, at = o.track or 1, o.at or 0
   local mtype = ({video = 1, audio = 2})[o.media or ""]
   if mtype ~= 2 then R.tracks(tl, "video", track) end
@@ -515,6 +518,8 @@ function R.render(o)
   assert(p:SetCurrentRenderFormatAndCodec(o.format or "mov", o.codec or "ProRes422HQ"), "bad format/codec (use the codec ID, e.g. ProRes422HQ, DNxHRHQ)")
   local s = {TargetDir = o.dir, CustomName = o.name, ExportVideo = true, ExportAudio = o.audio ~= false, SelectAllFrames = o.range == nil}
   if o.range then s.MarkIn = tl:GetStartFrame() + o.range[1]; s.MarkOut = tl:GetStartFrame() + o.range[2] end
+  -- o.settings: any other SetRenderSettings key, e.g. {ExportSubtitle = true, SubtitleFormat = "BurnIn"}
+  for k, v in pairs(o.settings or {}) do s[k] = v end
   assert(p:SetRenderSettings(s), "SetRenderSettings rejected")
   local id = p:AddRenderJob()
   assert(id and id ~= "", "AddRenderJob failed (render path / settings)")

@@ -67,6 +67,29 @@ end
 -- ── timelines ────────────────────────────────────────────────────────────────
 function R.fps(tl) return math.floor(tonumber((tl or R.tl()):GetSetting("timelineFrameRate")) + 0.5) end
 
+-- Clip length in frames. Audio-only clips have no "Frames" property, only Duration (TC at the clip's FPS).
+function R.frames(clip)
+  local n = tonumber(clip:GetClipProperty("Frames"))
+  if n then return n end
+  local h, m, s, f = clip:GetClipProperty("Duration"):match("(%d+):(%d+):(%d+)[:;](%d+)")
+  local fps = math.floor(tonumber(clip:GetClipProperty("FPS")) + 0.5)
+  return ((tonumber(h) * 60 + tonumber(m)) * 60 + tonumber(s)) * fps + tonumber(f)
+end
+
+-- Any value -> short readable string (tables to depth 2). For dumping API returns.
+function R.ser(v, d)
+  d = d or 0
+  if type(v) ~= "table" then return tostring(v) end
+  if d > 2 then return "{...}" end
+  local s = {}
+  for k, x in pairs(v) do
+    if k ~= "__flags" then s[#s + 1] = tostring(k) .. "=" .. R.ser(x, d + 1) end
+    if #s > 60 then s[#s + 1] = "..." break end
+  end
+  table.sort(s)
+  return "{" .. table.concat(s, ", ") .. "}"
+end
+
 -- Relative frame -> timecode string (non-drop, integer fps).
 function R.tc(tl, rel)
   tl = tl or R.tl()
@@ -124,7 +147,7 @@ function R.place(tl, clip, o)
   o = o or {}
   if type(clip) == "string" then clip = assert(R.find(clip), "no clip " .. clip) end
   local from = o.from or 0
-  local len = o.len or (tonumber(clip:GetClipProperty("Frames")) - from)
+  local len = o.len or (R.frames(clip) - from)
   local track, at = o.track or 1, o.at or 0
   local mtype = ({video = 1, audio = 2})[o.media or ""]
   if mtype ~= 2 then R.tracks(tl, "video", track) end
@@ -133,10 +156,13 @@ function R.place(tl, clip, o)
   if mtype then info.mediaType = mtype end
   local got = R.mp():AppendToTimeline({info}) or {}
   assert(#got > 0, "AppendToTimeline placed nothing for " .. clip:GetName())
-  local s = got[1]:GetStart() - tl:GetStartFrame()
-  assert(s == at, string.format("%s landed at %d, wanted %d (track %d)", clip:GetName(), s, at, track))
   -- AppendToTimeline returns one item per request; linked audio comes back via GetLinkedItems
   for _, l in ipairs(got[1]:GetLinkedItems() or {}) do got[#got + 1] = l end
+  local s = got[1]:GetStart() - tl:GetStartFrame()
+  if s ~= at then  -- the spot was taken (Resolve appends at the track end instead): undo, then fail
+    tl:DeleteClips(got, false)
+    error(string.format("%s landed at %d, wanted %d (track %d): range occupied?", clip:GetName(), s, at, track))
+  end
   return got
 end
 
@@ -273,19 +299,85 @@ function R.template(tl, comp_path, o)
   return item, comp, txt
 end
 
+-- Read a whole file (the console has no io and no bmd.readfile; libc via ffi, declared by bridge.lua).
+function R.readfile(p)
+  local f = ffi.C.fopen(p, "rb")
+  if f == nil then return nil end
+  local buf, out = ffi.new("char[65536]"), {}
+  repeat
+    local n = tonumber(ffi.C.fread(buf, 1, 65536, f))
+    out[#out + 1] = ffi.string(buf, n)
+  until n < 65536
+  ffi.C.fclose(f)
+  return table.concat(out)
+end
+
+-- Splice any Fusion tool or ResolveFX into a clip's comp just before MediaOut1 (repeat calls chain).
+-- id: a .setting file (macro or Effects template), a Fusion tool ID ("FilmGrain", "Transform", "SoftGlow") or OFX ID ("ofx.com.blackmagicdesign.resolvefx.Glow"; the 53
+-- that work on free, with their params: references/effects-catalog.tsv). params: {InputID = value | {{frame, value}, ...}}.
+-- ResolveFX take the image on "Source", Fusion tools on "Input": FindMainInput(1) finds either. Wiring "Input" on a
+-- ResolveFX leaves it unconnected and the clip renders BLACK.
+function R.fx(item, id, params)
+  local comp = item:GetFusionCompCount() > 0 and item:GetFusionCompByIndex(1) or item:AddFusionComp()
+  local mo = comp:FindTool("MediaOut1")
+  local t
+  if id:match("%.setting$") then  -- macro/template file: paste it; Paste leaves exactly the pasted top-level tools selected
+    -- comp:Paste() returns false unless the comp is the one open in the Fusion page
+    local tl, pg = R.tl(), resolve:GetCurrentPage()
+    R.seek(tl, item:GetStart() - tl:GetStartFrame())  -- seek first: SetCurrentTimecode is ignored on the Fusion page
+    resolve:OpenPage("fusion")
+    for _ = 1, 30 do  -- wait until the Fusion page really shows this clip's comp, or Paste lands elsewhere
+      if resolve:Fusion():GetCurrentComp() == comp then break end
+      bmd.wait(0.1)
+    end
+    assert(resolve:Fusion():GetCurrentComp() == comp, "Fusion page did not open this clip's comp")
+    -- one argument only: bmd.readstring(s, x) returns nil, and Paste(nil) pastes the CLIPBOARD instead
+    local settings = bmd.readstring((assert(R.readfile(id), "cannot read " .. id)))
+    assert(type(settings) == "table" and settings.Tools, "not a Fusion .setting: " .. id)
+    assert(comp:Paste(settings), "Paste failed: " .. id)
+    -- several top-level tools: take the end of the chain = the one no other pasted tool reads from
+    -- (Paste may auto-connect it to MediaOut, so connections to non-pasted tools don't count)
+    local pasted = {}
+    for _, x in pairs(comp:GetToolList(true)) do pasted[x.Name] = x end
+    for _, x in pairs(pasted) do
+      local out, fed = x:FindMainOutput(1), false
+      for _, inp in pairs(out and out:GetConnectedInputs() or {}) do fed = fed or pasted[inp:GetTool().Name] ~= nil end
+      if out and not fed then t = x end
+    end
+    assert(t, "no output tool found in " .. id)
+    resolve:OpenPage(pg)
+  else
+    t = assert(comp:AddTool(id), "AddTool failed: " .. id)
+  end
+  local main = t:FindMainInput(1)  -- nil for generators/titles: their output simply replaces the picture
+  if main then main:ConnectTo(mo.Input:GetConnectedOutput() or comp:FindTool("MediaIn1").Output) end
+  mo.Input:ConnectTo(t:FindMainOutput(1))  -- macros output on "MainOutput1", tools on "Output"
+  for k, v in pairs(params or {}) do
+    if type(v) == "table" and type(v[1]) == "table" then key(t, k, v) else t:SetInput(k, v) end
+  end
+  return t, comp
+end
+
+-- A tool's settable inputs with current values (skips images/masks): find param IDs for R.fx.
+function R.inputs(tool)
+  local o = {}
+  for _, inp in ipairs(tool:GetInputList()) do
+    local a = inp:GetAttrs()
+    if a.INPS_DataType ~= "Image" and a.INPS_DataType ~= "Mask" then  -- macros expose InputN: show the display name too
+      local name = (a.INPS_Name and a.INPS_Name ~= a.INPS_ID) and "(" .. a.INPS_Name .. ")" or ""
+      o[#o + 1] = a.INPS_ID .. name .. "=" .. R.ser(inp[0])
+    end
+  end
+  return table.concat(o, " ")
+end
+
 -- Keyframed motion on a clip through a Fusion Transform (renders in the timeline and in Deliver).
 -- o.punch = {from=1.25, to=1.0, frames=6}  impact zoom at the head of the clip
 -- o.push  = {from=1.0, to=1.08}            slow eased zoom across the whole clip
 -- o.shake = {amp=0.015, frames=10}         decaying shake (fraction of frame)
 function R.motion(item, o)
-  local comp = item:GetFusionCompCount() > 0 and item:GetFusionCompByIndex(1) or item:AddFusionComp()
-  local xf = comp:FindToolByID("Transform")
-  if not xf then
-    xf = comp:AddTool("Transform")
-    local mo = comp:FindTool("MediaOut1")
-    xf.Input = mo.Input:GetConnectedOutput() or comp:FindTool("MediaIn1").Output
-    mo.Input = xf.Output
-  end
+  local comp = item:GetFusionCompCount() > 0 and item:GetFusionCompByIndex(1)
+  local xf = comp and comp:FindToolByID("Transform") or R.fx(item, "Transform")
   local n = item:GetDuration()
   if o.push then key(xf, "Size", {{0, o.push.from or 1.0}, {n - 1, o.push.to or 1.08}}) end
   if o.punch then
@@ -368,12 +460,21 @@ end
 
 -- ── review: the agent's eyes ─────────────────────────────────────────────────
 -- Full timeline composite (all tracks, Fusion, grades) at timeline resolution, as PNG. Edit page only.
+-- Move the playhead to a relative frame. Right after a page switch the first move can be dropped: retry.
+function R.seek(tl, rel)
+  local tc = R.tc(tl, rel)
+  for _ = 1, 5 do
+    tl:SetCurrentTimecode(tc)
+    if tl:GetCurrentTimecode() == tc then return tc end
+    bmd.wait(0.2)
+  end
+  error("playhead did not move to " .. tc)
+end
+
 function R.still(tl, rel, path)
   tl = tl or R.tl()
   page("edit")
-  local tc = R.tc(tl, rel)
-  tl:SetCurrentTimecode(tc)
-  assert(tl:GetCurrentTimecode() == tc, "playhead did not move to " .. tc)
+  R.seek(tl, rel)
   return R.project():ExportCurrentFrameAsStill(path)
 end
 

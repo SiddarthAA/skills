@@ -481,7 +481,8 @@ function R.still(tl, rel, path)
   tl = tl or R.tl()
   page("edit")
   R.seek(tl, rel)
-  return R.project():ExportCurrentFrameAsStill(path)
+  -- the console can't mkdir: a missing folder makes the export return false and write nothing
+  return assert(R.project():ExportCurrentFrameAsStill(path), "still export failed (does the folder exist?): " .. path)
 end
 
 function R.stills(tl, frames, dir, prefix)
@@ -509,6 +510,7 @@ function R.storage() return resolve:GetMediaStorage():GetMountedVolumeList() end
 -- o: dir, name, format("mov"), codec("ProRes422HQ"), range {in, out} relative frames (inclusive), audio(true)
 function R.render(o)
   local p, tl = R.project(), R.tl()
+  o.dir = o.dir:gsub("^~", HOME)
   local ok = false
   for _, v in ipairs(R.storage()) do if o.dir:sub(1, #v) == v then ok = true end end
   assert(ok, o.dir .. " is not inside Media Storage (" .. table.concat(R.storage(), ", ") .. ")")

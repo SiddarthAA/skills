@@ -8,7 +8,8 @@ engine for every page. **[L]** = verified on free 21.1.1 Linux.
 R.fx(item, "ofx.com.blackmagicdesign.resolvefx.Glow", {brightness = 0.6})  -- any of the 53 ResolveFX on free
 R.fx(item, "FilmGrain", {MasterStrength = 0.15})                          -- any Fusion tool (about 500 in the registry)
 R.fx(item, R.templates .. "Edit/Effects/CCTV.setting")  -- any macro/template .setting: built-in (unpacked by install.sh), Reactor, your own
-local _, comp = R.fx(carrier, R.templates .. "Edit/Titles/Headline.setting")       -- title templates go on a carrier clip (R.carrier)
+local carrier = R.place(tl, R.carrier(tl), {track = 2, at = 120, len = 60, media = "video"})[1]  -- transparent clip for overlays
+local _, comp = R.fx(carrier, R.templates .. "Edit/Titles/Headline.setting")       -- title/generator templates go on a carrier
 comp:FindToolByID("TextPlus"):SetInput("StyledText", "hacktober")
 R.fx(item, "Transform", {Size = {{0, 1.2}, {8, 1.0}}})                     -- {{frame, value}, ...} = keyframes
 print(R.inputs(tool))   -- the tool's own params with current values (skips the common Settings page)
@@ -16,7 +17,8 @@ print(R.inputs(tool))   -- the tool's own params with current values (skips the 
 - Repeat calls chain the effects (each one is spliced just before MediaOut1). Returns `tool, comp`.
 - Param IDs: `references/effects-catalog.tsv` (every ResolveFX on free with params and defaults) or `R.inputs(tool)`. **`SetInput` on a wrong
   ID is silently ignored**; R.fx asserts the ID exists.
-- Proof: always `R.still()` before and after (luminance or MAE change), because a broken chain renders BLACK, not an error.
+- Proof: always `R.still()` before and after, because a broken chain renders BLACK, not an error. Measure from the shell:
+  `compare -metric MAE before.png after.png null: 2>&1` (the number in brackets is 0..1; above about 0.01 means a visible change).
 
 ### Why R.fx is built the way it is (each one cost a black or wrong frame)
 | Trap | Fix in R.fx |
@@ -67,8 +69,10 @@ print(R.inputs(tool))   -- the tool's own params with current values (skips the 
 
 ## Transitions (Edit-page API, includes Fusion transitions) [L]
 `item:AddTransition({type, category, position = "start"|"end", alignment = "left"|"center"|"right", duration})`:
-- simple (30): Cross/Additive/Blur/Dip To Color/Non-Additive Dissolve, Smooth Cut; Arrow/Cross/Diamond/Eye/Hexagon/Oval/Pentagon/Square/Triangle Iris;
-  Barn Door, Push, Slide, Split; Box, Heart, Star; Band/Center/Clock/Edge/Radial/Spiral/Venetian Blind/X Wipe.
+- simple (30): "Cross Dissolve", "Additive Dissolve", "Blur Dissolve", "Dip To Color Dissolve", "Non-Additive Dissolve", "Smooth Cut",
+  "Arrow Iris", "Cross Iris", "Diamond Iris", "Eye Iris", "Hexagon Iris", "Oval Iris", "Pentagon Iris", "Square Iris", "Triangle Iris",
+  "Barn Door", "Push", "Slide", "Split", "Box", "Heart", "Star", "Band Wipe", "Center Wipe", "Clock Wipe", "Edge Wipe", "Radial Wipe",
+  "Spiral Wipe", "Venetian Blind Wipe", "X Wipe".
 - fusion (18): Circles, Cube, Disarrange, Edgy, Fold, Glitch, Glow, Mosaic, Perspective, Posterize, Radial, Rotate, Shash, Shatter, Spin, Warp, Zoom In, Brightness Flash.
 - ofx (1): Burn Away. A wrong category returns nil. **Center alignment needs source handles on both clips** (nil otherwise).
 

@@ -19,9 +19,10 @@ Frames are relative to the timeline start (0 = first frame).
 | `R.timeline(name, {w, h, fps, crop, video, audio})` | New timeline with a unique name. `w`/`h` set a per-timeline resolution (vertical inside a 16:9 project). `crop = true` makes other-aspect sources fill (scaleToCrop) so `R.frame` can pick what shows. `fps` only works before the project's first timeline |
 | `R.open(name)` | Make an existing timeline current |
 | `R.tracks(tl, kind, n)` | Ensure n tracks of "video" / "audio" / "subtitle" |
-| `R.place(tl, clip, {track, at, from, len, media, atrack})` | Exact placement (exclusive end handled). Asserts the source range is inside the clip and that it landed where asked (else deletes the stray item and errors). Returns `{video, linked audio...}` |
+| `R.carrier(tl)` | Transparent ProRes 4444 "carrier" clip matching the timeline size/fps (from install.sh; lives in the skill's own `_carriers` bin). Place it on an upper track, then put titles/generators on it with `R.title` or `R.fx` |
+| `R.place(tl, clip, {track, at, from, len, media, atrack})` | Exact placement (exclusive end handled). Asserts the source range is inside the clip and that it landed where asked (else deletes the stray item and errors). `media` = "video" or "audio" (only that part) or nil (both, linked); `atrack` = audio track when it differs from `track`. Returns `{video, linked audio...}` |
 | `R.frame(item, x, zoom)` | Frame a subject in a wider source (crop timeline): x = position as a fraction of source width. Sets `Pan = (0.5 - x) * timeline_width * zoom` (pixel-verified), clamped against black edges |
-| `R.keep(tl, clip, ranges, {track, at, media})` | Lay `{{in,out},...}` source ranges back to back (silence cuts, selects). Returns items and the end frame |
+| `R.keep(tl, clip, ranges, {track, at, media})` | Lay `{{in,out},...}` source ranges back to back (silence cuts, selects; `out` exclusive). Returns items and the end frame |
 | `R.items(tl, kind, track)`, `R.dump(tl)` | List items; a readable map of every track |
 | `R.tc(tl, rel)`, `R.fps(tl)` | Relative frame to timecode; integer fps |
 | `R.has_font(family)`, `R.default_font()` | Is the family visible to Fusion (rescans ~/.local/share/fonts); first available of Open Sans / Inter / DejaVu Sans / Helvetica Neue / Arial |
@@ -31,7 +32,7 @@ Frames are relative to the timeline start (0 = first frame).
 | `R.inputs(tool)` | A tool's own params with values (display names for macro `InputN`), to find IDs for R.fx |
 | `R.templates` | `~/resolve-bridge/templates/`: Resolve's 417 built-in Fusion templates as .setting files (install.sh) |
 | `R.readfile(path)` | Read a file inside the console (no io there): ffi + libc |
-| `R.motion(item, {punch={from,to,frames}, push={from,to}, shake={amp,frames}, blur})` | Keyframed Fusion Transform on a clip (renders in timeline and Deliver) |
+| `R.motion(item, {punch={from,to,frames}, push={from,to}, shake={amp,frames}, blur})` | Keyframed Fusion Transform on a clip. Named keys, Transform Size units (1 = 100%), frames from the item's first frame: `R.motion(it, {punch = {from = 1.3, to = 1.0, frames = 8}})` zooms 130% to 100% over 8 frames; `push = {from = 1, to = 1.08}` over the whole clip; `shake = {amp = 0.015, frames = 10}` (fraction of frame). Returns the Transform tool |
 | `R.zoom(item, {target={x,y} top-left fractions, scale, at, hold, ease})` | Demo zoom onto a point and back (pixel-verified maths) |
 | `R.key(tool, input, {{frame, value}, ...})` | Keyframe any Fusion input (BezierSpline, or XYPath for Center) |
 | `R.lut(items, "agent/moody.cube")` | LUT on node 1. The path is relative to the master LUT folder |
@@ -41,11 +42,13 @@ Frames are relative to the timeline start (0 = first frame).
 | `R.normalize(tl, items, mode, target)` | Clip-gain loudness normalize ("EBU R128" -23, "YouTube", "True Peak"...) |
 | `R.sync(cam, mic)` | Waveform-sync an external recorder to a camera clip |
 | `R.markers(tl, frames, color, name)` | Beat / cue markers |
+| `R.still` notes | The folder must already exist (the console can't mkdir; R.still errors otherwise). PNGs are uncompressed (about 6 MB at 1080p). Compare two stills from the shell: `compare -metric MAE a.png b.png null: 2>&1` prints `<abs> (<0..1>)`; average colour/luminance: `convert a.png -resize 1x1! -format '%[fx:luminance]' info:` |
 | `R.seek(tl, rel)` | Move the playhead, retrying (the first move after a page switch can be dropped) |
 | `R.still(tl, rel, png)`, `R.stills(tl, frames, dir, prefix)` | **The agent's eyes:** full timeline composite PNGs at timeline resolution (Edit page) |
 | `R.storage()` | Media Storage roots (the only places renders may go) |
 | `R.render({dir, name, format, codec, range, audio, preset, settings})` | Blocking render. Returns status, seconds, path. Default ProRes 422 HQ .mov. `settings` = any SetRenderSettings keys (e.g. subtitle burn-in) |
-| `R.ser(v)`, `R.dump(tl)` | Readable dump of any API return / of a timeline |
+| `R.ser(v)`, `R.dump(tl)` | Readable dump of any API return / of a timeline. Lua tables can't hold nil, so `R.ser({a, nil, c})` silently drops the nil: check suspicious values one by one |
+| `reload()` (bridge global) | Re-reads lib.lua into `R`. Call it after editing lib.lua (resolve-up does it when the bridge is already up) |
 
 ## Raw API
 

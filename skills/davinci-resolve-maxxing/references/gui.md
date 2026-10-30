@@ -14,6 +14,7 @@ accessibility tree (its bundled Qt has no AT-SPI bridge), so the GUI means scree
   confirm with a screenshot. Crop screenshots (`gui shot f.png x y w h`) to save tokens.
 
 ## The `gui` helper (scripts/gui)
+`gui` and `rv`'s dialog check default to `DISPLAY=:1` (this machine). Export `DISPLAY` to point elsewhere.
 | Command | Does |
 |---|---|
 | `gui wins` | Visible Resolve windows: id, title, x y w h |

@@ -40,7 +40,7 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
    | GUI-only parts | `references/gui.md` | `gui shot/key/click/field/drag` |
 
    Genre recipes with code: `references/recipes.md` A-D. Numbers (pacing, levels, safe zones, caption sizes): `references/craft-and-specs.md`. Run it with `RV_TIMEOUT=300 rv < build.lua`.
-7. **Self-review.** `R.stills()` frames into `sheet.py --grid`, then LOOK. Grep `ResolveDebug.txt` for Fusion errors. Check the safe zone, text, framing, grade, gaps, black frames from broken effect wiring, and Studio watermarks.
+7. **Self-review.** `R.stills()` frames into `sheet.py --grid`, then LOOK. Numbers: `compare -metric MAE a.png b.png null: 2>&1` (before/after an effect). Grep `ResolveDebug.txt` for Fusion errors. Check the safe zone, text, framing, grade, gaps, black frames from broken effect wiring, and Studio watermarks.
 8. **PREVIEW, checkpoint 2.** `R.render({dir = "~/Videos/<project>", name = ...})` (inside Media Storage), `ffprobe` that a video stream exists, then `finish.py master --to <platform>`. Share the MP4 and a sheet, apply notes, rebuild.
 9. **DELIVER, checkpoint 3.** `finish.py` for every platform (two-pass loudness to -14 LUFS / -1 dBTP, H.264, burned captions). Report file paths and the QA JSON. Then `R.save()` and `pm:ExportProject(name, path.drp, false)` as a backup.
 
@@ -48,7 +48,8 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
 
 **Hard rules** (each one cost a crash, a black frame or a silent failure in testing; details in `references/gotchas.md`):
 - Never modify, move or write next to source media. Work in `~/videos/<project>`, render in `~/Videos/<project>`.
-- Never delete projects, timelines, bins or presets you didn't create (prefix yours `agent-`). Make new versions (`R.timeline` adds a suffix).
+- Never delete projects, timelines, bins or presets you didn't create (prefix yours `agent-`; the skill's own `_carriers` bin is fine). Make new versions (`R.timeline` adds a suffix).
+- Never use stereo 3D features (`ConvertTimelineToStereo`, stereo clips): on free the whole project becomes unopenable. Probe unknown calls in a throwaway project.
 - Never call `TranscribeAudio`, `CreateSubtitlesFromAudio` or `AutoAlignClips` (they crash Resolve). Other Studio calls open an upsell modal: dismiss it with Escape.
 - Never use `Insert*IntoTimeline` (they ripple-insert 150 frames into V1). Titles: `R.title` or a title template on a carrier.
 - Never wrap Fusion edits in `comp:Lock()`. Apply effects with `R.fx` (ResolveFX need their `Source` input; macros their `MainOutput1`).

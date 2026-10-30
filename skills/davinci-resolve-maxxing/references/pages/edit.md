@@ -15,7 +15,7 @@ subtitle styling, retime curves and Inspector keyframes (Fusion keyframes are th
 | Animated moves (punch, push, shake, zoom-to-point) | API (Fusion) | `R.motion`, `R.zoom`, or `R.fx(item, "Transform", {Size = {{0,1.2},{8,1}}})` [L] |
 | Effects on a clip | API (Fusion) | `R.fx(item, id, params)`: any ResolveFX, Fusion tool or .setting template (`pages/fusion.md`) [L] |
 | Effects Library drag (human way) | GUI | Search box + `gui drag` (below) [L]. Not visible to the API afterwards |
-| Transitions | API | `item:AddTransition({type, category, position, alignment, duration})`: 49 work (list in `pages/fusion.md`) [L] |
+| Transitions | API | `outgoing:AddTransition({type = "Cross Dissolve", category = "simple", position = "end", alignment = "center", duration = 12})` on the clip BEFORE the cut; centre splits the duration evenly (6+6). Returns the transition item. 49 work (`pages/fusion.md`) [L] |
 | Titles | API | `R.title` (carrier + Text+) or a title template via `R.fx(carrier, R.templates.."Edit/Titles/X.setting")` [L]. Never `Insert*IntoTimeline` |
 | Speed | API | `item:SetSpeed({Percentage=50})` keeps the item length [L]; ramps: Fusion `TimeSpeed`/`TimeStretcher` via R.fx, or the retime curve (GUI) |
 | Stabilize | API | `item:Stabilize()` works on free [L] |
@@ -49,6 +49,10 @@ tl:Export(path, resolve.EXPORT_AAF, resolve.EXPORT_AAF_NEW)
 mp:ImportTimelineFromFile(path, {timelineName = "x"})   -- FCPXML: point at x.fcpxml/Info.fcpxml (it's a folder); EDL ok; DRT keeps its own name
 tl:DeleteClips(items, ripple)   -- pass linked audio too
 ```
+- **Transitions are items too**: after AddTransition, `GetItemListInTrack` (and `R.items`) include them and clip indexes shift. Filter with
+  `it:GetType() == "video"` (transitions return "transition") or keep the items `R.place` returned.
+- Own timelines: delete with `R.mp():DeleteTimelines({tl})` (only ones you made). Source range of an item: `GetSourceStartFrame()`/`GetSourceEndFrame()`
+  (check handles before centred transitions).
 - **AppendToTimeline happily places a source range past the clip's end** (frozen last frame, no handles); `R.place` asserts against it.
 - **A missing track index drops the clip at the end of V1**; occupied ranges make Resolve append at the track end. `R.place` deletes the stray item and errors.
 - `InsertFusionGeneratorIntoTimeline`, `InsertFusionCompositionIntoTimeline`, `InsertTitleIntoTimeline`... **ripple-insert 150 frames into V1 at the playhead**, splitting clips. Don't.

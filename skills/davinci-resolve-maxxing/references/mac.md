@@ -7,6 +7,9 @@ Same bridge, same Lua, same `R` helpers. Differences:
 | H.264/HEVC/AAC | Not decodable or encodable on free: transcode to ProRes, encode with ffmpeg | **Supported on free.** `prep.py transcode` is only needed for reframing; Resolve can render H.264 directly (`R.render({format="mp4", codec="H264"})`; check codec IDs with `p:GetRenderCodecs("mp4")`) |
 | Master LUT folder (SetLUT) | `/opt/resolve/LUT` | `/Library/Application Support/Blackmagic Design/DaVinci Resolve/LUT/` (install with `RESOLVE_LUT_DIR=... install.sh`, may need sudo) |
 | Support / logs | `~/.local/share/DaVinciResolve/` | `~/Library/Application Support/Blackmagic Design/DaVinci Resolve/` |
+| Fairlight presets (fl_eq.py `--out`, install.sh step 5) | `~/.local/share/DaVinciResolve/configs/Fairlight/Presets/{EQ,DYN}` | probably `~/Library/Application Support/Blackmagic Design/DaVinci Resolve/configs/Fairlight/Presets/{EQ,DYN}`: confirm by saving an EQ preset in the GUI and finding the file |
+| Built-in Fusion templates (R.templates) | `/opt/resolve/Fusion/Templates/Templates.drfx` | inside the app bundle; `find /Applications/DaVinci\ Resolve -name Templates.drfx`, unzip to `~/resolve-bridge/templates` |
+| GUI driver | `scripts/gui` (xdotool) | not ported: use osascript/cliclick with the same techniques (`references/gui.md`) |
 | Fonts Fusion sees | `/usr/share/fonts` only (bridge runs `ScanDir`) | System font folders; user fonts probably visible. Still check `R.has_font` |
 | Media Storage default | `~/Videos` here | Usually `~/Movies`. `rv 'return R.storage()'` |
 | Launch binary | `/opt/resolve/bin/resolve` | `open -a "DaVinci Resolve"` |
@@ -33,3 +36,5 @@ Pasting is safer than typing Lua through System Events. On Retina displays, scre
 5. `R.lut` after installing LUTs into the Mac LUT folder.
 6. `R.render` to ProRes, plus a direct H.264 render. Note the codec IDs.
 7. Import a phone H.264/HEVC clip directly: does it decode (Resolution property set)?
+8. `R.fx(item, "ofx.com.blackmagicdesign.resolvefx.Glow")` and a template `.setting`: do they render (R.still)? Studio-only pieces watermark on free.
+9. Fairlight: save an EQ preset in the GUI, note the folder, then point `fl_eq.py --out` at it.

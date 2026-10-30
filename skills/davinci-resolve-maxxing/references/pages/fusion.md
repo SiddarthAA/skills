@@ -31,6 +31,17 @@ print(R.inputs(tool))   -- the tool's own params with current values (skips the 
 | Templates paste several top-level tools, and Fusion may auto-connect them to MediaOut | the output tool = the pasted tool that no OTHER pasted tool reads from |
 | Generators/titles have no main input | their output simply replaces the picture (use a carrier clip for overlays) |
 
+## Speed ramps (verified frame-exact) [L]
+```lua
+-- SourceTime = which source frame (relative to the clip's source IN) to show at each item frame; Fusion splines between keys
+R.fx(item, "TimeStretcher", {SourceTime = {{0, 0}, {30, 15}, {60, 22}, {89, 80}}})   -- normal -> slow-mo -> hold-ish -> fast
+```
+Matched against source frames: item frames 30/60/89 showed source +15/+22/+80 exactly. Source frames beyond the item's own range are
+available (the comp's global range spans the whole source clip), but keep them inside the media. Frames between keys are blended
+(`InterpolateBetweenFrames`); for true slow motion from 30p, shoot high frame rate or accept the blend.
+**Don't use TimeSpeed for ramps**: its Speed is integrated from the comp's GLOBAL start (whole-source range), so timeline frame 0 showed
+source +100 instead of +0 [L].
+
 ## What's available on free [L]
 - **53 OFX** (52 ResolveFX + Color Generator). Pixel test at defaults: 41 visibly change the frame; 12 are identity until set (keyers,
   Dead Pixel Fixer, Transform, CST, Gamut, Stop Motion, Despill). Burn Away is a transition (SourceFrom/SourceTo). List: `effects-catalog.tsv`.

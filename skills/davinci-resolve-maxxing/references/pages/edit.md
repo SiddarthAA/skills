@@ -17,7 +17,7 @@ subtitle styling, retime curves and Inspector keyframes (Fusion keyframes are th
 | Effects Library drag (human way) | GUI | Search box + `gui drag` (below) [L]. Not visible to the API afterwards |
 | Transitions | API | `outgoing:AddTransition({type = "Cross Dissolve", category = "simple", position = "end", alignment = "center", duration = 12})` on the clip BEFORE the cut; centre splits the duration evenly (6+6). Returns the transition item. 49 work (`pages/fusion.md`) [L] |
 | Titles | API | `R.title` (carrier + Text+) or a title template via `R.fx(carrier, R.templates.."Edit/Titles/X.setting")` [L]. Never `Insert*IntoTimeline` |
-| Speed | API | `item:SetSpeed({Percentage=50})` keeps the item length [L]; ramps: Fusion `TimeSpeed`/`TimeStretcher` via R.fx, or the retime curve (GUI) |
+| Speed | API | `item:SetSpeed({Percentage=50})` keeps the item length [L]. **Ramps**: `R.fx(item, "TimeStretcher", {SourceTime = {{0,0},{30,15},{60,22},{89,80}}})` (frame-exact, `pages/fusion.md`) [L]; or the retime curve (GUI) |
 | Stabilize | API | `item:Stabilize()` works on free [L] |
 | Subtitles (native) | API | Subtitle track + SRT append + `R.render{settings={ExportSubtitle=true, SubtitleFormat="BurnIn"}}` [L] (recipe below) |
 | Subtitle styling | GUI | Select the subtitle track, then Inspector > Track style. Or burn styled captions with `finish.py --subs` / `R.title` |

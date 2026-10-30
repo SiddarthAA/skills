@@ -40,7 +40,7 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Transitions | ✓ 49 | Fusion transition templates | | Center alignment needs handles |
 | Titles | ✓ `R.title` | ✓ title templates | | Never `Insert*IntoTimeline` (ripples 150 frames) |
 | Generators, particles, backgrounds | ✓ carrier + `R.fx(carrier, R.templates.."Edit/Generators/Starfield.setting")` (Starfield, Snow verified) | 417 templates | | |
-| Speed | ✓ constant | Fusion TimeSpeed | retime curve | |
+| Speed, ramps | ✓ constant; ✓ ramps via Fusion TimeStretcher (frame-exact) | | retime curve | Don't use TimeSpeed |
 | Stabilize | ✓ | | | |
 | Compound / Fusion clip / takes / duplicate | ✓ | | | |
 | Subtitles (place, burn-in) | ✓ | SRT | styling ✓ | Append SRT FIRST on an empty timeline |
@@ -68,7 +68,7 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Add nodes (serial/parallel/layer/window) | ✗ | DRX | ✓ keys | Alt+S/P/L, Alt+C/Q/G/B |
 | Primaries (temp, tint, contrast, wheels, sat, hue) | ✗ (CDL covers lift/gamma/gain/sat) | DRX | ✓ number fields | |
 | Curves, warper, ColorSlice | ✗ | ✓ LUT (global) / DRX | drag | |
-| Qualifier, power windows | ✗ | DRX | ✓ fields | |
+| Qualifier, power windows | ✗ (grade them by API: SetCDL on that node) | DRX | ✓ fields (both verified with pixel tests) | |
 | Tracking | ✗ | | ✓ tracker ▶ | |
 | Gallery stills/albums (grab, label, export/import DRX) | ✓ | | | |
 | DCTL | watermark on free | | | Studio |

@@ -87,6 +87,12 @@ source +100 instead of +0 [L].
 - fusion (18): Circles, Cube, Disarrange, Edgy, Fold, Glitch, Glow, Mosaic, Perspective, Posterize, Radial, Rotate, Shash, Shatter, Spin, Warp, Zoom In, Brightness Flash.
 - ofx (1): Burn Away. A wrong category returns nil. **Center alignment needs source handles on both clips** (nil otherwise).
 
+## Tracking in Fusion
+The Tracker tool adds fine by script (`R.fx(item, "Tracker")`; inputs PatternCenter1/Width1/Height1, outputs Position1, SteadyPosition...), but
+**`SetInput("TrackForward", 1)` does nothing**, even with the comp open in the Fusion page: no keyframes, TrackedCenter1 stays at its default [L].
+Routes: the Color page tracker for window grades (`pages/color.md`, GUI button); the Fusion Inspector's track buttons (GUI); or track outside
+Resolve (e.g. OpenCV in a uv script) and write the path as keyframes with `R.key(tool, "Center", {{f, {x, y}}, ...})` (untested idea).
+
 ## Fusion page GUI (rarely needed)
 Shift+5 or `resolve:OpenPage("fusion")` shows the comp of the clip under the playhead (seek BEFORE switching). Nodes, Inspector and keyframes
 are all reachable by script, so use the GUI only to look: `gui shot`.

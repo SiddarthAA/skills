@@ -31,7 +31,9 @@ subtitle styling, retime curves and Inspector keyframes (Fusion keyframes are th
 `CompositeMode` (int; `resolve.COMPOSITE_*`), `CompositeEnabled`, `DynamicZoomEnabled`, `DynamicZoomEase`, `RetimeProcess` (0 project,
 1 nearest, 2 frame blend, 3 optical flow), `MotionEstimation`, `Scaling` (0 project, 1 crop, 2 fit, 3 fill, 4 stretch), `ResizeFilter`,
 `Distortion`, `LensCorrectionEnabled`, `TransformEnabled`, `RetimeAndScalingEnabled`. Audio items have `AudioVolume/Pan/Pitch*` (`pages/fairlight.md`).
-`SetProperty` returned true for all tested keys, and transform/crop/flip/opacity render (checked on a still).
+`SetProperty` returned true for all tested keys, and transform/crop/flip/opacity/composite modes (`resolve.COMPOSITE_SCREEN` = 5 ...) render
+(checked on stills). `DynamicZoomEnabled = true` animates a default push (the first frame already differs from the original); its start/end
+rectangles are GUI-only (viewer overlay), so use `R.zoom`/`R.motion` for exact framing.
 
 ## Timeline API [L]
 ```lua

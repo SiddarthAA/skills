@@ -55,7 +55,8 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Keyframes, splines, expressions | ✓ | | | `R.key`, `SetExpression` |
 | Macros/templates (.setting) | ✓ paste (Fusion page open) | ✓ 417 built-in + your own via `SaveSettings` | | `R.fx(item, path)` |
 | Text+ | ✓ | | | Fonts must be visible to Fusion |
-| Particles, 3D, trackers, masks, keyers | API reachable (tools); tracking runs untested | | | |
+| Particles, 3D, masks, keyers | ✓ tools by script; particles via templates (Snow verified) | 417 templates | | |
+| Fusion tracking (Tracker/PlanarTracker) | tools add, but TrackForward can't be triggered by script | | Fusion Inspector buttons | Or track outside Resolve and write keyframes |
 | OGraf HTML titles | ✗ on Linux | | | macOS/Windows only |
 
 ## Color

@@ -35,7 +35,7 @@ Frames are relative to the timeline start (0 = first frame).
 | `R.motion(item, {punch={from,to,frames}, push={from,to}, shake={amp,frames}, blur})` | Keyframed Fusion Transform on a clip. Named keys, Transform Size units (1 = 100%), frames from the item's first frame: `R.motion(it, {punch = {from = 1.3, to = 1.0, frames = 8}})` zooms 130% to 100% over 8 frames; `push = {from = 1, to = 1.08}` over the whole clip; `shake = {amp = 0.015, frames = 10}` (fraction of frame). Returns the Transform tool |
 | `R.zoom(item, {target={x,y} top-left fractions, scale, at, hold, ease})` | Demo zoom onto a point and back (pixel-verified maths) |
 | `R.key(tool, input, {{frame, value}, ...})` | Keyframe any Fusion input (BezierSpline, or XYPath for Center) |
-| `R.lut(items, "agent/moody.cube")` | LUT on node 1. The path is relative to the master LUT folder |
+| `R.lut(items, "agent/moody.cube")` | LUT on node 1 (runs BEFORE later nodes). The path is relative to the master LUT folder. Custom curves: `prep.py lut curve --points ...` |
 | `R.cdl(item, {slope={r,g,b}, offset, power, sat})` | ASC CDL on node 1 |
 | `R.group(name, items, lut)` | Color group with a pre-clip LUT: one look for many clips |
 | `R.volume(item, db)`, `R.fade(item, in, out)` | Clip gain (dB), fades (frames), audio or video |

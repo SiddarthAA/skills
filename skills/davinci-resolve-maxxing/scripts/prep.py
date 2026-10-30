@@ -10,6 +10,7 @@
   prep.py carriers WxH [--fps 30] [--seconds 20] --out DIR
       Transparent ProRes 4444 clip that titles ride on (lib.lua R.title).
   prep.py lut NAME --out FILE.cube      looks: moody, teal-orange, warm-film, clean, mono
+  prep.py lut curve --points "0:0.06,0.5:0.5,0.9:0.85,1:0.92" --out FILE.cube   custom global curve (in:out, same on R/G/B)
 """
 import argparse
 import os
@@ -125,8 +126,20 @@ def _look(name):
     return looks[name]
 
 
+def _curve(spec):
+    """Piecewise-linear tone curve from "in:out,..." points (0..1), applied to R, G and B."""
+    pts = sorted(tuple(float(v) for v in p.split(":")) for p in spec.split(","))
+    def y(x):
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            if x <= x1:
+                return y0 + (y1 - y0) * (x - x0) / (x1 - x0)
+        return pts[-1][1]
+    assert y(pts[0][0]) == pts[0][1]
+    return lambda r, g, b: (y(r), y(g), y(b))
+
+
 def lut(a):
-    f, n = _look(a.name), 33
+    f, n = (_curve(a.points) if a.name == "curve" else _look(a.name)), 33
     with open(a.out, "w") as out:
         out.write(f'TITLE "{a.name}"\nLUT_3D_SIZE {n}\n')
         for bi in range(n):
@@ -148,7 +161,8 @@ def main():
     s.add_argument("--seconds", type=float, default=5); s.add_argument("--fps", type=int, default=30); s.add_argument("--force", action="store_true")
     c = sub.add_parser("carriers"); c.add_argument("size"); c.add_argument("--fps", type=int, default=30)
     c.add_argument("--seconds", type=int, default=20); c.add_argument("--out", required=True)
-    l = sub.add_parser("lut"); l.add_argument("name", choices=["moody", "teal-orange", "warm-film", "clean", "mono"]); l.add_argument("--out", required=True)
+    l = sub.add_parser("lut"); l.add_argument("name", choices=["moody", "teal-orange", "warm-film", "clean", "mono", "curve"]); l.add_argument("--out", required=True)
+    l.add_argument("--points", default="0:0,1:1", help='curve only: "in:out,..." e.g. lifted blacks + soft roll-off "0:0.06,0.5:0.5,0.9:0.85,1:0.92"')
     a = p.parse_args()
     {"transcode": transcode, "still": still, "carriers": carriers, "lut": lut}[a.cmd](a)
 

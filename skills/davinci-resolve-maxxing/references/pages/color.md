@@ -7,14 +7,14 @@ Coordinates: 1854x1048 main window, default layout (screenshot first, `reference
 
 | Job | Route | How |
 |---|---|---|
-| A look on many clips | API | `R.lut(items, "agent/moody.cube")` or `R.group(name, items, lut)` (color-group pre-clip LUT) [L] |
-| Lift/gamma/gain/sat per node | API | `item:SetCDL({NodeIndex="2", Slope="1.2 1 0.8", Offset="0 0 0", Power="1 1 1", Saturation="1.1"})` on ANY node index, including GUI-made nodes [L] |
-| Any global curve / custom look | API via LUT | Bake it into a .cube (`prep.py lut` or numpy), put it in `/opt/resolve/LUT/agent/`, `p:RefreshLUTList()`, `SetLUT(node, "agent/x.cube")` [L] |
-| **Copy a full grade** (node tree, windows, qualifiers, curves) | **Template (DRX)** | Grade once in the GUI, `tl:GrabStill()`, `album:ExportStills({st}, dir, prefix, "drx")`; later `item:GetNodeGraph():ApplyGradeFromDRX(path, 0)` [L]. Or `src:CopyGrades({targets})` inside one project |
-| Add nodes | GUI keys | Node editor focused: Alt+S serial, Shift+S before, Alt+P parallel, Alt+L layer, **Alt+C/Q/G/B = node with circle/linear/polygon/curve window** [L] |
+| A look on many clips | API | `R.group(name, items, lut)` (color-group pre-clip LUT) [L]; `R.lut(items, "agent/moody.cube")` puts it on node 1, i.e. BEFORE later nodes (their gain can re-clip highlights). For a finishing look use the group's post-clip graph: `item:GetColorGroup():GetPostClipNodeGraph():SetLUT(1, lut)` [L] |
+| Lift/gamma/gain/sat per node | API | `item:SetCDL({NodeIndex="2", Slope="1.2 1 0.8", Offset="0 0 0", Power="1 1 1", Saturation="1.1"})` on ANY node index, including GUI-made nodes [L]. Side effects: it rewrites that node's RGB wheels (Slope 1.35 / Offset 0.02 / Power 0.9 showed as Gain 1.38 / Lift 0.01 / Gamma 0.03) and sets its **Lum Mix to 0**, so later master (Y) wheel edits on that node do nothing |
+| Any global curve / custom look | API via LUT | `prep.py lut curve --points "0:0.06,0.5:0.5,0.9:0.85,1:0.92" --out /opt/resolve/LUT/agent/soft.cube` (in:out points, same on R/G/B), then `p:RefreshLUTList()`, `SetLUT(node, "agent/soft.cube")` [L] |
+| **Copy a full grade** (node tree, windows, qualifiers, curves) | **Template (DRX)** | Grade once in the GUI, `tl:GrabStill()`, `album:ExportStills({st}, dir, prefix, "drx")` (writes `<prefix>_<still number>.drx`, e.g. `look_1.1.1.drx`: `ls` the folder); later `item:GetNodeGraph():ApplyGradeFromDRX(path, 0)` [L]. **ApplyGradeFromDRX crashed Resolve once** (SIGSEGV on the first call, issued from the Color page seconds after the export; the retry from the Edit page worked): `R.save()` first, one clip per `rv` call. Inside one project prefer `src:CopyGrades({targets})` |
+| Add nodes | GUI keys | Node editor focused: Alt+S serial, Shift+S before, Alt+P parallel, Alt+L layer, **Alt+C/Q/G/B = node with circle/linear/polygon/curve window** [L]. Once in four, an Alt+C node came out with an empty mask: check the Key palette (1168,692) or an on/off still pair before grading; `ResetAllGrades()` clears a broken tree |
 | Temp, tint, contrast, pivot, sat, hue, wheels by number | GUI fields | Primaries palette number fields: `gui field X Y VALUE` [L] |
-| Power window shape/position/softness | GUI fields | Window palette transform fields [L], then grade inside with SetCDL on that node [L] |
-| Track a window | GUI | Tracker palette ▶ (track forward) or Ctrl+T [L]. Results are only visible on screen |
+| Power window shape/position/softness | GUI fields | Window palette transform fields [L], then grade inside with SetCDL on that node [L]. **Pan/Tilt: 50/50 = centre, about 82 px per unit at 1080p, Pan up = right, Tilt up = up**: for a subject at frame fractions (x, y from top-left), Pan ≈ 50 + (x - 0.5)·23.4, Tilt ≈ 50 - (y - 0.5)·13.2. Soft 1: default 2.07; 2-4 is a normal feather, 8 shrinks the core to a dot. Off-frame windows fail silently (no change) |
+| Track a window | GUI | Select the window node, seek to the clip's FIRST frame (it tracks from the playhead), then Tracker palette track forward (823,751) [L]. 60 frames take about 6 s; the tracked window moves in stills and renders. Prove it by stills with `SetNodeEnabled` on/off at the first and last frames. Leave the "Cloud Tracker" dropdown alone |
 | Qualifier (HSL key), curves by hand, color warper, magic mask | GUI / template / Studio | Qualifier and curves are GUI drags/fields: do them once, then DRX. Magic Mask = Studio (`CreateMagicMask` returns false) [L] |
 | Compare / review | API | `R.still(tl, f, png)`; average colour: `convert x.png -resize 1x1! -format '%[pixel:p{0,0}]' info:` |
 | Node readout | API | `g:GetNumNodes()`, `g:GetToolsInNode(i)` e.g. {Primary Balance, Saturation Hue & Lum Mix} or {Power Windows}, `g:GetNodeLabel(i)`, `g:GetLUT(i)` [L] |
@@ -31,6 +31,8 @@ local gal = p:GetGallery(); local al = gal:GetCurrentStillAlbum()       -- also 
 local st = tl:GrabStill(); al:SetLabel(st, "hero"); al:ExportStills({st}, dir, "look", "drx"); al:ImportStills({path.drx}); al:DeleteStills({st})
 tl:GrabAllStills(1)               -- one still per clip
 ```
+- `AddVersion(name, 0)` makes the new version current with a BLANK one-node grade (not a copy). `ResetAllGrades()` also deletes extra nodes.
+  `GetToolsInNode` returns nil for an empty node. `ApplyGradeFromDRX` switches to the Color page. `ExportStills(..., "drx")` writes only the .drx.
 - **Timeline-level node graph has 0 nodes** and the API can't add nodes; use color-group pre/post graphs or clip nodes.
 - `SetLUT` paths are relative to the master LUT folder (`/opt/resolve/LUT` on Linux) and need `p:RefreshLUTList()` after adding files. `ExportLUT` returns false.
 - DRX = XML wrapper with a zstd-compressed (probably protobuf) `<Body>`: **not hand-authorable**. Stills live in `~/Videos/.gallery`.
@@ -52,6 +54,7 @@ tl:GrabAllStills(1)               -- one still per clip
 | Versions / memories | Ctrl+Y add version, Ctrl+N/B next/prev, Alt+1..8 save memory A..H |
 
 ## Recipe: GUI grade into a reusable look file
-1. Make a clip current (thumbnail click). Build nodes with keys (Alt+S, Alt+C), set fields (`gui field`), and add a window, qualifier or curve.
+1. `resolve:OpenPage("color")` (again after every `R.still`, which leaves you on the Edit page). Make a clip current (thumbnail click). Build nodes with keys
+   (Alt+S, Alt+C), set fields (`gui field`), and add a window, qualifier or curve.
 2. `rv 'local st = R.tl():GrabStill(); R.project():GetGallery():GetCurrentStillAlbum():ExportStills({st}, "<dir>", "mylook", "drx")'`
-3. Ship `mylook_<label>.drx` with the brand kit; apply with `ApplyGradeFromDRX(path, 0)` on any clip, any project. Verify with `R.still`.
+3. Ship `mylook_<still number>.drx` with the brand kit; apply with `ApplyGradeFromDRX(path, 0)` one clip per call after `R.save()`, on any clip, any project. Verify with `R.still`.

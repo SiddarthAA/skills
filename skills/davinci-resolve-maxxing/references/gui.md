@@ -37,6 +37,7 @@ accessibility tree (its bundled Qt has no AT-SPI bridge), so the GUI means scree
 | Drag and drop needs gradual motion | `gui drag` (a plain press-move-release does nothing) |
 | Name/confirm dialogs | `Message` (e.g. "Create New" at (407,161)), `Input` (name field (207,87), Return to OK) |
 | **Studio upsell modal** "You have reached a limitation" after a Studio-only API call | `GUI_WIN='^Message$' gui key Escape` (= Not Yet). While it is open, API create calls silently return nil. `rv` warns |
+| `R.still`, `R.timeline`, `R.place` and `R.render` leave Resolve on the Edit or Deliver page | `OpenPage(...)` again before the next GUI click |
 | Page switch races | The first `SetCurrentTimecode` after `OpenPage` can be dropped; `SetCurrentTimecode` is ignored ON the Fusion page. `R.seek` retries |
 
 ## Pages and global keys (DaVinci Resolve keymap, 21.1)

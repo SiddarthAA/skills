@@ -12,12 +12,12 @@ say(){ echo "install: $*"; }
 # 1. bridge + helper library live in ~/resolve-bridge (the Console dofile path); symlinks keep them in sync with the skill
 ln -sf "$SKILL/scripts/bridge.lua" "$B/bridge.lua"
 ln -sf "$SKILL/scripts/lib.lua" "$B/lib.lua"
-for f in rv rcon resolve-up; do
+for f in rv rcon resolve-up gui; do
   chmod +x "$SKILL/scripts/$f"; ln -sf "$SKILL/scripts/$f" "$BIN/$f"
   [ -f "$B/$f" ] && [ ! -L "$B/$f" ] && rm "$B/$f"  # old hand-made copies would shadow the real scripts
 done
 chmod +x "$SKILL/scripts/"*.py "$SKILL/scripts/"*.sh
-say "bridge in $B, rv/rcon/resolve-up in $BIN"
+say "bridge in $B, rv/rcon/resolve-up/gui in $BIN"
 
 # 2. xdotool (GUI fallback + typing the bridge line). No sudo? unpack the Ubuntu .deb locally.
 if ! command -v xdotool >/dev/null && ! command -v xdo >/dev/null; then
@@ -47,7 +47,12 @@ else
   say "WARNING: cannot write $LUTDIR; rerun with sudo or set RESOLVE_LUT_DIR"
 fi
 
-# 5. dependencies
+# 5. starter Fairlight presets (EQ/Dynamics XML): they show up at once in the EQ/Dynamics windows and Fairlight > Presets Library
+FL=$HOME/.local/share/DaVinciResolve/configs/Fairlight/Presets
+for kind in EQ DYN; do mkdir -p "$FL/$kind"; cp "$SKILL/assets/fairlight/$kind/"*.xml "$FL/$kind/"; done
+say "Fairlight presets in $FL (make more: fl_eq.py)"
+
+# 6. dependencies
 for c in ffmpeg ffprobe uv convert montage import; do command -v "$c" >/dev/null || say "WARNING: missing $c"; done
 [ -x /opt/resolve/bin/resolve ] || say "WARNING: Resolve not at /opt/resolve/bin/resolve (set RESOLVE_BIN)"
 echo "$PATH" | tr ':' '\n' | grep -qx "$BIN" || say "WARNING: add $BIN to PATH"

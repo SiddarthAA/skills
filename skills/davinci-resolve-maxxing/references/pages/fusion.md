@@ -90,7 +90,8 @@ source +100 instead of +0 [L].
 ## Tracking in Fusion
 The Tracker tool adds fine by script (`R.fx(item, "Tracker")`; inputs PatternCenter1/Width1/Height1, outputs Position1, SteadyPosition...), but
 **`SetInput("TrackForward", 1)` does nothing**, even with the comp open in the Fusion page: no keyframes, TrackedCenter1 stays at its default [L].
-Routes: the Color page tracker for window grades (`pages/color.md`, GUI button); the Fusion Inspector's track buttons (GUI); or track outside
+In the Fusion page GUI (Inspector > Trackers tab, Tracking buttons at about (1620-1760, 222-250)) the buttons stayed greyed out and both viewers
+black in our session (unverified route). Working routes: the Color page tracker for window grades (`pages/color.md`, verified); or track outside
 Resolve (e.g. OpenCV in a uv script) and write the path as keyframes with `R.key(tool, "Center", {{f, {x, y}}, ...})` (untested idea).
 
 ## Fusion page GUI (rarely needed)

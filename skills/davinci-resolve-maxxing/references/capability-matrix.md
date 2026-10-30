@@ -32,7 +32,7 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 ## Edit / Cut
 | Feature | API | Template | GUI | Notes |
 |---|---|---|---|---|
-| Timelines (size, fps, tracks, names, lock/enable) | ✓ | | | `R.timeline`, `AddTrack`... |
+| Timelines (size, fps, tracks, names, lock/enable) | ✓ | | | `R.timeline`, `AddTrack`... Audio track "enable" doesn't mute renders |
 | Exact placement, selects, silence cuts, reframing | ✓ | | | `R.place`, `R.keep`, `R.frame` |
 | Transform / crop / opacity / flip / composite / retime quality | ✓ | | Inspector | 32 properties |
 | Keyframed motion | ✓ (Fusion) | | Inspector keyframes | `R.motion`, `R.zoom`, `R.fx(..., {{f, v}})` |
@@ -83,7 +83,7 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Track dynamics | ✗ | ✓ XML (save from GUI) | ✓ fields | |
 | Insert FX (reverb, de-esser, NR...) | ✗ | ✓ config preset carries them | ✓ Effects + | |
 | Whole-mix template | ✓ `ApplyFairlightPresetToCurrentTimeline` | ✓ config preset | save once | Same track count |
-| Ducking | ✗ (cut-and-lower via API) | ✗ (not in config presets) | ✓ Ducker | |
+| Ducking | cut-and-lower via API | ✓ config preset carries the Ducker | ✓ Ducker | No threshold: a constant cut over room noise |
 | Buses / sends | ✗ | config preset (untested) | ✓ Bus Format | |
 | Automation, ADR, recording | ✗ | | GUI (untested) | Not needed for agent edits |
 | Voice isolation, dialogue separator | ✗ | | | Studio |

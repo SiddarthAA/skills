@@ -49,7 +49,7 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
 **Hard rules** (each one cost a crash, a black frame or a silent failure in testing; details in `references/gotchas.md`):
 - Never modify, move or write next to source media. Work in `~/videos/<project>`, render in `~/Videos/<project>`.
 - Never delete projects, timelines, bins or presets you didn't create (prefix yours `agent-`; the skill's own `_carriers` bin is fine). Make new versions (`R.timeline` adds a suffix).
-- Never use stereo 3D features (`ConvertTimelineToStereo`, stereo clips): on free the whole project becomes unopenable. Probe unknown calls in a throwaway project.
+- Never use stereo 3D features (`ConvertTimelineToStereo`, stereo 3D clips; stereo audio tracks are fine): on free the whole project becomes unopenable. Probe unknown calls in a throwaway project.
 - Never call `TranscribeAudio`, `CreateSubtitlesFromAudio` or `AutoAlignClips` (they crash Resolve). Other Studio calls open an upsell modal: dismiss it with Escape.
 - Never use `Insert*IntoTimeline` (they ripple-insert 150 frames into V1). Titles: `R.title` or a title template on a carrier.
 - Never wrap Fusion edits in `comp:Lock()`. Apply effects with `R.fx` (ResolveFX need their `Source` input; macros their `MainOutput1`).

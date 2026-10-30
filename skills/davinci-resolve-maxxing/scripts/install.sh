@@ -12,12 +12,12 @@ say(){ echo "install: $*"; }
 # 1. bridge + helper library live in ~/resolve-bridge (the Console dofile path); symlinks keep them in sync with the skill
 ln -sf "$SKILL/scripts/bridge.lua" "$B/bridge.lua"
 ln -sf "$SKILL/scripts/lib.lua" "$B/lib.lua"
-for f in rv rcon resolve-up gui; do
+for f in rv rcon resolve-up gui fl_eq.py; do
   chmod +x "$SKILL/scripts/$f"; ln -sf "$SKILL/scripts/$f" "$BIN/$f"
   [ -f "$B/$f" ] && [ ! -L "$B/$f" ] && rm "$B/$f"  # old hand-made copies would shadow the real scripts
 done
 chmod +x "$SKILL/scripts/"*.py "$SKILL/scripts/"*.sh
-say "bridge in $B, rv/rcon/resolve-up/gui in $BIN"
+say "bridge in $B, rv/rcon/resolve-up/gui/fl_eq.py in $BIN"
 
 # 2. xdotool (GUI fallback + typing the bridge line). No sudo? unpack the Ubuntu .deb locally.
 if ! command -v xdotool >/dev/null && ! command -v xdo >/dev/null; then

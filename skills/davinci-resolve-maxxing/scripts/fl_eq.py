@@ -4,7 +4,8 @@
   fl_eq.py agent-voice-clean --hp 80 --band 3:300:-2 --band 5:5000:2.5
   fl_eq.py music-duck --hp 40 --band 4:2000:-4 --lp 16000 --out ./my-presets
 
-Bands are numbered as in the EQ window: 1 = high-pass, 2-5 = bells/shelves (--band N:Hz:dB[:Q]), 6 = low-pass.
+Bands are numbered as in the EQ window: 1 = high-pass, 2 = low shelf, 3-4 = bells, 5 = high shelf (--band N:Hz:dB), 6 = low-pass.
+Shapes and Q stay as in the template; frequencies snap to 257 log steps per range (350 Hz shows as 348).
 Resolve reads the frequency from BAND_LIMITED_FREQ_<n>, a 0..256 log index inside the band's range
 (L 30-399, ML 100-1.5k, MH 450-8k, H 1.4k-22k), not from BAND_FREQ. Gains are stored in 0.1 dB.
 """
@@ -54,7 +55,7 @@ if __name__ == "__main__":
     ap.add_argument("name")
     ap.add_argument("--hp", type=float)
     ap.add_argument("--lp", type=float)
-    ap.add_argument("--band", action="append", default=[], help="N:Hz:dB, N = 2..5")
+    ap.add_argument("--band", action="append", default=[], help="N:Hz:dB, N = 2 (low shelf), 3-4 (bell), 5 (high shelf)")
     ap.add_argument("--out", default=str(DEST))
     a = ap.parse_args()
     bands = [tuple(float(v) for v in s.split(":")) for s in a.band]

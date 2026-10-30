@@ -173,7 +173,7 @@ $S/finish.py master.mov --to reels --subs $W/captions.srt --size 72 --name 20261
 9. **Levels.** `R.normalize(tl, audioItems, "EBU R128", -23)` evens out clip gain; `finish.py` does the final -14 LUFS (podcast feed: `--to podcast`, -16).
 10. **Dialogue EQ, compression, de-ess, ducking:** no direct API, but a template route exists (`pages/fairlight.md`): apply a saved Fairlight
     configuration preset with `R.project():ApplyFairlightPresetToCurrentTimeline("agent-talk-mix")` (EQ, compressor, inserts; make EQs with `fl_eq.py`),
-    and add the Ducker per timeline in the Inspector. Without a saved preset, process the WAV with ffmpeg before import, e.g.
+    including the Ducker if the preset was saved with one. Without a saved preset, process the WAV with ffmpeg before import, e.g.
     `highpass=f=90,acompressor=threshold=-20dB:ratio=3:attack=10:release=150,deesser`.
 
 ## D. Event recap / ad (16:9 + 9:16 cutdowns)

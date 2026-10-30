@@ -8,7 +8,7 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | Never do this | What happens | Do this instead |
 |---|---|---|
 | `tl:CreateSubtitlesFromAudio()`, `item:TranscribeAudio()`, `AnalyzeForIntellisearch`, `GenerateSpeech`, voice isolation and other AI calls on **free** | Crashed Resolve (Qt fatal) [L]. Reported elsewhere as an upgrade dialog that blocks every later call [R] | `scripts/transcribe.py` (faster-whisper) for captions and word timings |
-| **`tl:ConvertTimelineToStereo()`, `mp:CreateStereoClip`, any stereo 3D setting** | **The PROJECT can no longer be opened on free**: loading shows the Studio upsell, then "Unable to Open Project" (log: `Stereo Project feature is not supported`). It cost us the claude-lab test project [L] | Never use stereo features. Back up with `pm:ExportProject` before probing unknown calls, and probe them in a throwaway project |
+| **`tl:ConvertTimelineToStereo()`, `mp:CreateStereoClip`, any stereo 3D setting** (stereo AUDIO tracks are fine) | **The PROJECT can no longer be opened on free**: loading shows the Studio upsell, then "Unable to Open Project" (log: `Stereo Project feature is not supported`). It cost us the claude-lab test project [L] | Never use stereo features. Back up with `pm:ExportProject` before probing unknown calls, and probe them in a throwaway project |
 | `tl:AutoAlignClips()` | Returned false once and crashed Resolve twice, a moment after the call [L] | Media-pool `R.sync(cam, mic)` (AutoSyncAudio, sample-accurate) [L] |
 | `pm:ArchiveProject(...)` with source or proxy media flags | SIGSEGV [R]. With all flags false it returns false, no file [L] | `pm:ExportProject(name, path.drp, false)` [L] |
 | Studio-only calls: `DetectSceneCuts`, `PerformMulticamSmartSwitch`, `RemoveMotionBlur`, `PerformAudioClassification`, `AnalyzeForIntellisearch` | No crash, but the **"You have reached a limitation" upsell modal** opens, and while it's up later create calls silently return nil (CreateEmptyTimeline -> nil) [L] | Avoid; if `rv` warns about a dialog: `GUI_WIN='^Message$' gui key Escape` (= Not Yet). Full probe list: `capability-matrix.md` and the pages |
@@ -50,7 +50,8 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | `AppendToTimeline` with a source range past the clip's end succeeds (frozen frame, no handles); centred transitions then return nil [L] | `R.place` asserts the range |
 | A timeline with **no video items** can't render (Duration 0, AddRenderJob "") [L] | Carrier/black clip on V1 |
 | `LoadRenderPreset` doesn't reset a format/codec/name set earlier [L] | Set them explicitly every time (R.render) |
-| Fairlight config presets don't carry the Ducker (Track FX) [L] | Ducker per timeline, or cut-and-lower |
+| The Fairlight Ducker has no threshold: over a voice track with room noise it applies a constant cut, pauses included [L] | Cut-and-lower the music by API where pauses matter (`pages/fairlight.md`) |
+| `SetTrackEnable("audio", n, false)` returns true, but the track still plays in renders [L] | `AudioVolume = -100` on its clips |
 | EQ preset XML: `BAND_FREQ` is ignored; Resolve reads `BAND_LIMITED_FREQ` (a log index) [L] | `fl_eq.py` |
 | DCTL as a LUT renders with a big "Studio" WATERMARK on free [L] | Bake .cube LUTs; look at the pixels after anything Studio-flavoured |
 | `FlattenMulticam` returns nothing and does nothing; `InsertAudioToCurrentTrackAtPlayhead` true but no clip; `RenderWithQuickExport` nil; OTIO import nil [L] | Cut angles as clips; `R.place`; `R.render`; FCPXML |

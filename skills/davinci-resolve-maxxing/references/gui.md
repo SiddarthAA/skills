@@ -61,6 +61,7 @@ In the page references: `pages/fairlight.md` (mixer strips, EQ/Dynamics windows,
 | `Input` | Name a preset | Click (207,87), type, Return |
 | `Presets Library`, `Bus Format`, `Dialog`, `Plugin UI Panel`, `Patch Input/Output` | Fairlight windows (titles may be stale) | Screenshot to identify |
 | `Project Manager`, `Create New Project` | Launch | `resolve-up` handles them |
+| `Composition<N>` (500x171) "Are you sure you wish to do this? This operation will cancel the current render!" | Leaving the Fusion page while Fusion renders/tracks; blocks the API (`GetCurrentPage()` returns nil) | Yes (433,138) if it's your own comp's render |
 | `Problem Report for DaVinci Resolve` | After a crash | Click **Ignore** at (365,341). Never Send |
 | `Software Update` | Update nag | Skip; never Download |
 

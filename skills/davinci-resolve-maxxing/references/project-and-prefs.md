@@ -25,7 +25,8 @@ pm:GetCurrentDatabase()                             -- {DbType = "Disk", DbName 
   `SetSetting("timelinePlaybackFrameRate", ...)` returns false.
 - Per-timeline resolution: `tl:SetSetting("useCustomSettings", "1")` then width/height (R.timeline does it).
 - Settings presets: `p:SaveCurrentProjectSettingsAsNewPreset(name)`, `SetProjectSettingsPreset`, `UpdateProjectSettingsPreset`, `DeleteProjectSettingsPreset`,
-  `ExportProjectSettingsPreset(name, path)` / `ImportProjectSettingsPreset(path)`; list: `p:GetProjectSettingsPresetList()` ({Name, Width, Height}).
+  `ExportProjectSettingsPreset(name, path)` (writes a BINARY file: header "PresetType: ProjectSettingsPreset" + a compressed blob) /
+  `ImportProjectSettingsPreset(path, presetName)`; list: `p:GetProjectSettingsPresetList()` ({Name, Width, Height}).
   Exporting "Current Project" returns false: save it as a named preset first.
 
 ## App-wide presets [L]

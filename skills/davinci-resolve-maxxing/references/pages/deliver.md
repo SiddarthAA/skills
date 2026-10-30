@@ -29,6 +29,8 @@
   ColorSpaceTag, GammaTag, ExportAlpha, AlphaMode, EncodingProfile, MultiPassEncode, NetworkOptimization, ClipStartFrame, TimelineStartTimecode,
   ReplaceExistingFilesInPlace, ExportSubtitle, SubtitleFormat, UseFullExtents, AddFrameHandles, DataBurnIn.
 - After `R.render` Resolve stays on the Deliver page and the finished job stays in the queue (R.render clears jobs at its next start).
+- Rendering again with the same name silently overwrites the earlier file.
+- `finish.py` prints the QA JSON on stdout (redirect it to keep it), maps only picture + sound, and trims to the picture length.
 - Always `ffprobe` the output (a stray "Audio Only" preset once produced audio-only masters).
 
 ## GUI

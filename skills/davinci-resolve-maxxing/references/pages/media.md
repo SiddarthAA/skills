@@ -8,9 +8,9 @@ Import, bins, metadata, proxies, relink, audio sync, clip attributes. Nearly all
 | Import files (dedupes; warns on undecodable media) | API | `R.import(paths, bin)` [L]. Linux free can't decode H.264/HEVC/AAC: `prep.py transcode` first |
 | Bins | API | `R.bin(name)` (top-level bin, created if missing), `mp:AddSubFolder(parent, name)`, `MoveClips`, `MoveFolders`, `DeleteFolders` (own bins only) [L] |
 | Find a clip | API | `R.find(name)` (prefers file-backed clips over same-named compound clips). **SRT items are named without ".srt"** [L] |
-| Metadata / notes / keywords / custom agent data | API | `SetMetadata({Keywords=..., Scene=...})`, `SetClipProperty("Comments", ...)`, `Set/GetThirdPartyMetadata(key, v)` [L] |
+| Metadata / notes / keywords / custom agent data | API | `SetMetadata({Keywords=..., Scene=...})` (read back with `GetMetadata("Keywords")`; `GetClipProperty("Keywords")` is nil), `SetClipProperty("Comments", ...)`, `Set/GetThirdPartyMetadata(key, v)` [L] |
 | Marks, markers, flags, colors | API | `SetMarkInOut(in, out, "all")`, `AddMarker`, `AddFlag`, `SetClipColor` [L] |
-| Sync external audio | API | `R.sync(cam, mic)` (AutoSyncAudio waveform, sample-accurate) [L] |
+| Sync external audio | API | `R.sync(cam, mic)` (AutoSyncAudio waveform, sample-accurate) [L]. After sync the camera clip's property "Audio Offset" is in FRAMES at the clip fps, with **mic time = camera time + offset** (the `GetAudioMapping()` linked offset is in samples). The synced clip carries 2 audio tracks: track 1 = camera audio (ch 1-2), track 2 = mic (ch 3-4). For mic-only sound, mute the A1 items (`AudioVolume = -100`). A transcript made from the mic file is on the MIC clock: `captions.py --shift -<offset/fps>` [L] |
 | Proxies | API / ffmpeg | `LinkProxyMedia(path)`, `UnlinkProxyMedia()` [L]; make proxies with ffmpeg/prep.py (Resolve's proxy generator is GUI) |
 | Relink / replace | API | `mp:UnlinkClips`, `mp:RelinkClips(clips, dir)`, `mpi:ReplaceClip(path)`, `ReplaceClipPreserveSubClip`, `LinkFullResolutionMedia` [L] |
 | Bins as files | API | `folder:Export(path.drb)` then `mp:ImportFolderFromFile(path.drb)` round-trip [L] |

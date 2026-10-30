@@ -22,14 +22,16 @@ def ts(t):
     return f"{int(h):02d}:{int(m):02d}:{int(s):02d},{int(round((s - int(s)) * 1000)):03d}"
 
 
-def remap(words, ranges, fps, at):
-    """Source-clock words -> timeline frames. Words outside every kept range are dropped."""
+def remap(words, ranges, fps, at, shift=0.0):
+    """Source-clock words -> timeline frames. Words outside every kept range are dropped.
+    shift (s) is added to every word first: a transcript of a synced external mic is on the MIC clock,
+    camera time = mic time - AudioOffset/fps, so pass shift = -AudioOffset/fps."""
     out, offset = [], at
-    for a, b in ranges:
+    for i, (a, b) in enumerate(ranges):
         for w in words:
-            sf, ef = w["start"] * fps, w["end"] * fps
+            sf, ef = (w["start"] + shift) * fps, (w["end"] + shift) * fps
             if a <= sf < b:
-                out.append({"word": w["word"], "at": offset + (sf - a), "end": offset + (min(ef, b) - a)})
+                out.append({"word": w["word"], "at": offset + (sf - a), "end": offset + (min(ef, b) - a), "cut": i})
         offset += b - a
     return sorted(out, key=lambda w: w["at"])
 
@@ -38,7 +40,8 @@ def group(words, style, max_chars, lines, n, max_gap_f):
     cues, cur = [], []
     for w in words:
         text = " ".join(x["word"] for x in cur + [w])
-        gap = cur and w["at"] - cur[-1]["end"] > max_gap_f
+        # a new cue at pauses, at jump cuts (never caption across a cut) and after a sentence ends
+        gap = cur and (w["at"] - cur[-1]["end"] > max_gap_f or w["cut"] != cur[-1]["cut"] or cur[-1]["word"].endswith((".", "?", "!")))
         full = (len(cur) >= n) if style == "pop" else wrap(text, max_chars).count("\n") >= lines
         if cur and (gap or full):
             cues.append(cur); cur = []
@@ -72,11 +75,12 @@ def main():
     p.add_argument("--style", choices=["lines", "pop"], default="lines"); p.add_argument("--max-chars", type=int, default=24)
     p.add_argument("--lines", type=int, default=2); p.add_argument("--words", dest="per", type=int, default=3)
     p.add_argument("--fix", action="append", default=[]); p.add_argument("--json")
+    p.add_argument("--shift", type=float, default=0.0, help="seconds added to word times (mic transcript after R.sync: -AudioOffset/fps)")
     a = p.parse_args()
     words = json.load(open(a.words))
     keep = json.load(open(a.keep))
     ranges = keep["keep_f"] if isinstance(keep, dict) else keep
-    tw = remap(words, ranges, a.fps, a.at)
+    tw = remap(words, ranges, a.fps, a.at, a.shift)
     cues = group(tw, a.style, a.max_chars, a.lines, a.per, max_gap_f=0.6 * a.fps)
     fixes = [f.split("=", 1) for f in a.fix]
     out, cards = [], []
@@ -84,7 +88,7 @@ def main():
         text = " ".join(w["word"] for w in c)
         for old, new in fixes:
             text = re.sub(r"(?i)\b" + re.escape(old) + r"\b", new, text)
-        start, end = c[0]["at"], max(c[-1]["end"], c[0]["at"] + round(0.5 * a.fps))  # >= 0.5 s on screen
+        start, end = c[0]["at"], max(c[-1]["end"], c[0]["at"] + round(0.83 * a.fps))  # >= 0.83 s on screen (craft-and-specs)
         cards.append({"text": text, "at": round(start), "len": round(end - start)})
         out.append((start / a.fps, end / a.fps, wrap(text, a.max_chars) if a.style == "lines" else text))
     for i in range(len(cards) - 1):  # cards share one track: each ends where the next begins

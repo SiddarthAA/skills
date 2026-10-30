@@ -57,6 +57,11 @@ tl:DeleteClips(items, ripple)   -- pass linked audio too
 - **A missing track index drops the clip at the end of V1**; occupied ranges make Resolve append at the track end. `R.place` deletes the stray item and errors.
 - `InsertFusionGeneratorIntoTimeline`, `InsertFusionCompositionIntoTimeline`, `InsertTitleIntoTimeline`... **ripple-insert 150 frames into V1 at the playhead**, splitting clips. Don't.
 - OTIO export works but **OTIO import returns nil** (the exported OTIO has an empty name). Author edits as FCPXML instead.
+- **FCPXML round trip is lossy, and `ImportTimelineFromFile` silently changes the PROJECT resolution** to the timeline's size [L]. Save
+  `p:GetSetting("timelineResolutionWidth"/"Height")` before an import and set them back after. Exports drop the external mic track, the subtitle track
+  and clip volume (the EDL is V1 only). Imported items come in with `Scaling = 2` (fit) and follow the project settings: set the timeline's
+  `useCustomSettings = "1"`, `timelineInputResMismatchBehavior = "scaleToCrop"` and each item's `Scaling = 0` to match the original. Imports link to
+  existing pool clips and land in the current media-pool folder.
 
 ## Subtitles by script [L]
 ```lua
@@ -69,7 +74,10 @@ R.render({dir = ..., name = ..., settings = {ExportSubtitle = true, SubtitleForm
 ```
 - `recordFrame` is ignored for SRT items: cues land at their SRT time **plus the current end of the timeline**, so append before any other clip.
 - `tl:ImportIntoTimeline(srt)` returns false. Subtitle items: `tl:GetItemListInTrack("subtitle", 1)`, `item:GetName()` = the cue text.
-- Default burn-in style is plain white text, low centre (checked on a frame). Style it in the GUI, or use `finish.py --subs` for styled captions.
+- **Default burn-in on a 1080x1920 timeline is about 100 px text at y≈1430-1650, OUTSIDE the 9:16 safe zone (y ≤ 1248)**, and lines over
+  about 16-18 characters clip at the sides (`captions.py --max-chars 16`). Style it in the GUI (subtitle track Inspector), or burn styled,
+  safe-zone captions with `finish.py --subs` instead.
+- Changing captions later: there's no swap. Write the SRT under a NEW file name (R.import reuses by path) and rebuild the timeline with the SRT appended first.
 
 ## Multicam [L]
 `R.mp():CreateMulticamClip({camA, camB}, {name = "mc", angleSyncMode = resolve.MULTICAM_ANGLE_SYNC_IN})` returns a **list** with one MediaPoolItem

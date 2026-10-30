@@ -44,7 +44,7 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Stabilize | ✓ | | | |
 | Compound / Fusion clip / takes / duplicate | ✓ | | | |
 | Subtitles (place, burn-in) | ✓ | SRT | styling ✓ | Append SRT FIRST on an empty timeline |
-| Interchange | ✓ export EDL/FCPXML/OTIO/AAF/CSV/DRT, import FCPXML/EDL/DRT | FCPXML | | OTIO import ✗ |
+| Interchange | ✓ export EDL/FCPXML/OTIO/AAF/CSV/DRT, import FCPXML/EDL/DRT | FCPXML | | Lossy (mic track, subtitles, volume dropped); import changes project resolution; OTIO import ✗ |
 | Smart Reframe, scene detect, smart switch | ✗ | | | Studio |
 
 ## Fusion
@@ -103,6 +103,6 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Feature | API | Template | GUI | Notes |
 |---|---|---|---|---|
 | Create/load/save/close/import/export/delete own projects, PM folders | ✓ | .drp | | ArchiveProject returns false |
-| Project + timeline settings, settings presets | ✓ | XML | | |
+| Project + timeline settings, settings presets | ✓ | binary preset file | | FCPXML import changes the project resolution |
 | Keyboard / layout / preferences presets | ✓ | text / opaque / XML | | |
 | Media Storage roots | ✗ | | ✓ Preferences | restart needed |

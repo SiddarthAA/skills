@@ -50,6 +50,8 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | `SetInput` on a misspelled input ID is ignored silently [L] | `R.inputs(tool)` lists IDs; R.fx asserts |
 | `AppendToTimeline` with a source range past the clip's end succeeds (frozen frame, no handles); centred transitions then return nil [L] | `R.place` asserts the range |
 | A timeline with **no video items** can't render (Duration 0, AddRenderJob "") [L] | Carrier/black clip on V1 |
+| `mp:ImportTimelineFromFile(fcpxml)` silently changes the PROJECT resolution and imports items as Scaling = fit [L] | Save and restore the project resolution; set `Scaling = 0` / scaleToCrop (`pages/edit.md`) |
+| Resolve's subtitle burn-in on 9:16 sits below the safe zone and clips long lines [L] | `--max-chars 16`, style in the GUI, or `finish.py --subs` |
 | `LoadRenderPreset` doesn't reset a format/codec/name set earlier [L] | Set them explicitly every time (R.render) |
 | The Fairlight Ducker has no threshold: over a voice track with room noise it applies a constant cut, pauses included [L] | Cut-and-lower the music by API where pauses matter (`pages/fairlight.md`) |
 | `SetTrackEnable("audio", n, false)` returns true, but the track still plays in renders [L] | `AudioVolume = -100` on its clips |

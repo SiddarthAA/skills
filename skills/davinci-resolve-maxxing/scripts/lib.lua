@@ -41,15 +41,24 @@ function R.bin(name)
   return R.mp():AddSubFolder(root, name)
 end
 
--- Import files into a bin. Reuses clips already in the pool (matched by file name).
+-- Import files into a bin. Reuses clips already in the pool (matched by file path).
 -- Warns on media Resolve cannot decode (Linux free: H.264/HEVC/AAC import "succeeds" with no resolution).
+-- The media-pool clip of this exact FILE (any bin), or nil.
+function R.find_path(path)
+  local function walk(f)
+    for _, c in ipairs(f:GetClipList()) do if c:GetClipProperty("File Path") == path then return c end end
+    for _, s in ipairs(f:GetSubFolderList()) do local r = walk(s) if r then return r end end
+  end
+  return walk(R.mp():GetRootFolder())
+end
+
 function R.import(paths, bin)
   local mp, out = R.mp(), {}
   if bin then mp:SetCurrentFolder(R.bin(bin)) end
   local todo = {}
   for _, p in ipairs(paths) do
-    local name = p:match("([^/]+)$")
-    local have = R.find(name) or R.find((name:gsub("%.srt$", "")))  -- SRT items are named without the extension
+    -- reuse by FILE PATH (a same-named file elsewhere is a different clip); a reused clip stays in its bin
+    local have = R.find_path(p)
     if have then out[#out + 1] = have else todo[#todo + 1] = p end
   end
   if #todo > 0 then

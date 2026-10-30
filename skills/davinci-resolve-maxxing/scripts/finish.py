@@ -91,6 +91,7 @@ def main():
     p.add_argument("--font"); p.add_argument("--size", type=int, help="caption px at output height"); p.add_argument("--version")
     a = p.parse_args()
     out = a.out or os.path.dirname(os.path.abspath(a.master))
+    os.makedirs(out, exist_ok=True)
     stem = a.name or os.path.splitext(os.path.basename(a.master))[0].replace("_master", "")
     streams = probe(a.master)
     v = next(s for s in streams if s["codec_type"] == "video")
@@ -110,7 +111,8 @@ def main():
             vid = H264 + ["-crf", str(pr["crf"]), "-g", str(max(1, round(fps / 2)))]
             if pr["maxrate"]: vid += ["-maxrate", pr["maxrate"], "-bufsize", str(int(pr["maxrate"][:-1]) * 2) + "M"]
             aud = ["-an"] if name == "hero" or not has_audio else ["-af", af[0], "-c:a", "aac", "-b:a", pr["abr"], "-ar", "48000"]
-            ff("-i", a.master, *(["-vf", ",".join(vf)] if vf else []), *vid, *aud, dst)
+            # map only picture + sound (drops Resolve's timecode data track); -shortest trims AAC padding past the picture
+            ff("-i", a.master, "-map", "0:v:0", "-map", "0:a:0?", *(["-vf", ",".join(vf)] if vf else []), *vid, *aud, "-shortest", "-write_tmcd", "0", dst)
             if name == "hero":
                 ff("-i", a.master, "-an", "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "36", "-row-mt", "1", dst[:-4] + ".webm")
         reports.append(qa(dst, has_audio and name != "hero", fps))

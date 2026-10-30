@@ -18,6 +18,7 @@ Always proof-read names; fix leftovers with captions.py --fix OLD=NEW.
 import argparse
 import json
 import os
+import sys
 
 
 def ts(t):
@@ -41,7 +42,10 @@ def main():
     p.add_argument("--device", default="cpu", help="cpu (default, works everywhere) or cuda (needs CUDA 12 cuBLAS/cuDNN)")
     a = p.parse_args()
     import sys
-    from faster_whisper import WhisperModel
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:  # `python3 transcribe.py` skips the uv script header that installs it
+        sys.exit("transcribe.py: run it directly (./transcribe.py ..., a `uv run --script`), not with python3")
     print(f"loading whisper '{a.model}' (first run downloads it; see --help for sizes)...", file=sys.stderr, flush=True)
     model = WhisperModel(a.model, device=a.device, compute_type="int8")
     if a.prefetch:

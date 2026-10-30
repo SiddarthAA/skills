@@ -12,9 +12,10 @@ Frames are relative to the timeline start (0 = first frame).
 | Helper | Does |
 |---|---|
 | `R.project()`, `R.mp()`, `R.tl()`, `R.pm()`, `R.save()` | Handles; save the project |
-| `R.find(name)` | Media-pool clip by exact name, searching every bin |
+| `R.find(name, folder)` | Media-pool clip by exact name, searching every bin (or one `folder`); prefers file-backed clips. Same-named clips in different bins are ambiguous: keep the MediaPoolItems you imported, or pass the folder |
+| `R.find_path(path)` | The clip of this exact file, any bin |
 | `R.bin(name)` | Top-level bin, created if missing |
-| `R.import(paths, bin)` | Import into a bin (created if missing). Reuses clips already in the pool (SRTs too). Warns on undecodable media |
+| `R.import(paths, bin)` | Import into a bin (created if missing). **Reuses a clip of the same FILE PATH wherever it is (it is not moved into `bin`)**, so give a changed file (e.g. a re-made SRT) a new name. Warns on undecodable media |
 | `R.frames(clip)` | Clip length in frames (audio-only clips have no "Frames" property; uses Duration) |
 | `R.timeline(name, {w, h, fps, crop, video, audio})` | New timeline with a unique name. `w`/`h` set a per-timeline resolution (vertical inside a 16:9 project). `crop = true` makes other-aspect sources fill (scaleToCrop) so `R.frame` can pick what shows. `fps` only works before the project's first timeline |
 | `R.open(name)` | Make an existing timeline current |
@@ -42,7 +43,7 @@ Frames are relative to the timeline start (0 = first frame).
 | `R.normalize(tl, items, mode, target)` | Clip-gain loudness normalize ("EBU R128" -23, "YouTube", "True Peak"...) |
 | `R.sync(cam, mic)` | Waveform-sync an external recorder to a camera clip |
 | `R.markers(tl, frames, color, name)` | Beat / cue markers |
-| `R.still` notes | The folder must already exist (the console can't mkdir; R.still errors otherwise). PNGs are uncompressed (about 6 MB at 1080p). Compare two stills from the shell: `compare -metric MAE a.png b.png null: 2>&1` prints `<abs> (<0..1>)`; average colour/luminance: `convert a.png -resize 1x1! -format '%[fx:luminance]' info:` |
+| `R.still` notes | Stills do NOT include the subtitle track (check captions in a render). The folder must already exist (the console can't mkdir; R.still errors otherwise). PNGs are uncompressed (about 6 MB at 1080p). Compare two stills from the shell: `compare -metric MAE a.png b.png null: 2>&1` prints `<abs> (<0..1>)`; average colour/luminance: `convert a.png -resize 1x1! -format '%[fx:luminance]' info:` |
 | `R.seek(tl, rel)` | Move the playhead, retrying (the first move after a page switch can be dropped) |
 | `R.still(tl, rel, png)`, `R.stills(tl, frames, dir, prefix)` | **The agent's eyes:** full timeline composite PNGs at timeline resolution (Edit page) |
 | `R.storage()` | Media Storage roots (the only places renders may go) |

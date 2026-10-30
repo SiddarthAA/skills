@@ -144,15 +144,19 @@ title, burned captions, -14.0 LUFS).
 1. **Source window.** `sheet.py cam.MOV --start 115 --dur 45` to find the usable stretch, then
    `prep.py transcode cam.MOV --out $W/media --start 115 --dur 45 --fps 30` and **keep it 16:9** (a fixed vertical crop
    loses a speaker who moves).
-2. **External mic.** `R.sync(R.find("cam.mov"), R.find("mic.wav"))`. The synced clip carries 2 audio tracks: give it A1/A2.
-3. **Transcript.** `transcribe.py $W/media/cam.mov --hotwords "Quad AI, Failproof, <names>" --out $W/tx`. Proof-read names. Uncertain words go in the plan's open questions.
+2. **External mic.** `R.sync(R.find("cam.mov"), R.find("mic.wav"))`. The synced clip carries 2 audio tracks: A1 = camera audio, A2 = mic. For mic-only
+   sound mute the A1 items (`AudioVolume = -100`). "Audio Offset" on the camera clip = frames, mic time = camera time + offset.
+3. **Transcript.** `$S/transcribe.py $W/media/cam.mov --hotwords "Quad AI, Failproof, <names>" --out $W/tx` (run it directly: it is a uv script).
+   The camera track keeps the camera clock; if you transcribe the cleaner mic file instead, pass `captions.py --shift -<AudioOffset/fps>` in step 7.
+   Proof-read names. Uncertain words go in the plan's open questions.
 4. **Silence cuts.** `analyze.py silence $W/media/cam.mov --min 0.35 --pad 0.1 > $W/keep.json` (long-form: `--min 0.7 --pad 0.25`). RMS with an auto noise floor; it warns if it finds nothing. Check `gaps_cut` > 0.
 5. **Repeats, stammers, false starts.** Read `words.json`. Where a phrase repeats ("we built, we built a ...") or a sentence restarts, drop the source frames of the first take from the keep list by hand (split a range into two). Prefer cutting at word ends (`end_f`) next to RMS dips.
 6. **Place and frame:**
 ```bash
-$S/sheet.py $W/media/cam.mov --ranges $W/keep.json --out $W/scan/cuts.png   # in/mid/out of every cut on a 10% grid
+$S/sheet.py $W/media/cam.mov --ranges $W/keep.json --width 480 --out $W/scan/cuts.png   # in/mid/out of every cut on a 10% grid; 480 px cells read x within about 0.05
 ```
-   Read the speaker's x (fraction of source width) per cut off that sheet, then:
+   Read the speaker's x (fraction of source width) per cut off that sheet. A 9:16 window shows only about 0.32 of a 16:9 source width: if the
+   speaker walks further than that inside one cut, split the range in two and frame each half. Then:
 ```lua
 local tl = R.timeline("talk v1", {w = 1080, h = 1920, fps = 30, crop = true, video = 3, audio = 2})
 R.import({W .. "cam.mov"}, "media")
@@ -168,7 +172,9 @@ $S/captions.py $W/tx/cam.words.json --keep $W/keep.json --out $W/captions.srt --
 $S/finish.py master.mov --to reels --subs $W/captions.srt --size 72 --name 20261029_talk_piece --version v01
 # short-form word-pop instead: --style pop --words 2 --json $W/pop.json, then one R.title per card (at, len, text)
 ```
-   If you hand-edit the keep ranges after `analyze.py`, pass captions.py the SAME list you gave `R.keep` (a JSON array works).
+   If you hand-edit the keep ranges after `analyze.py`, pass captions.py the SAME list you gave `R.keep` (a JSON array works). captions.py starts a new
+   cue at every jump cut, sentence end and pause, and keeps each cue at least 0.83 s. `--max-chars 24` suits finish.py's burn-in; for Resolve's own
+   subtitle burn-in (`pages/edit.md`) use 16.
 8. **Multicam podcast.** Build the speaker timeline from the transcript (who speaks when). Place each speaker's camera ranges on V1 with `R.place(..., {media = "video"})`, and keep one continuous mixed audio on A1. Switch when a new speaker talks for more than 1.5-2 s; wide shot every 30-60 s.
 9. **Levels.** `R.normalize(tl, audioItems, "EBU R128", -23)` evens out clip gain; `finish.py` does the final -14 LUFS (podcast feed: `--to podcast`, -16).
 10. **Dialogue EQ, compression, de-ess, ducking:** no direct API, but a template route exists (`pages/fairlight.md`): apply a saved Fairlight

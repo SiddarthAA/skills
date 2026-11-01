@@ -1,0 +1,75 @@
+{
+	Tools = ordered() {
+		Transform1 = Transform {
+			Inputs = {
+				Size = Input {
+					SourceOp = "Transform1Size",
+					Source = "Value"
+				}
+			}
+		},
+		Transform1Size = BezierSpline {
+			SplineColor = { Blue = 225, Green = 0, Red = 225 },
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 1.5, RH = { 0, 1.5 } },
+				[8] = { 1, LH = { 4.64, 1 } }
+			}
+		},
+		ZoomBlur1 = ofx.com.blackmagicdesign.resolvefx.ZoomBlur {
+			Inputs = {
+				relativeG = Input { Value = 1 },
+				relativeB = Input { Value = 1 },
+				relativeA = Input { Value = 1 },
+				centerPosGroup = Input { Value = 0 },
+				CenterXPos = Input { Value = 0.5 },
+				CenterYPos = Input { Value = 0.5 },
+				xyPosition = Input { Value = { 0.5, 0.5 } },
+				advancedControlsGroup = Input { Value = 0 },
+				qualityMode = Input { Value = FuID { "QualityModeBetter" } },
+				resolvefxVersion = Input { Value = "3.1" },
+				BorderType = Input {
+					Disabled = true,
+					Value = FuID { "BORDER_TYPE_REPLICATE" }
+				},
+				dstProcessingAlphaMode = Input { Value = 1 },
+				srcProcessingAlphaMode = Input { Value = 1 },
+				isFollowSizing = Input { Value = 1 },
+				isBlurAlpha = Input { Value = 1 },
+				BlendAmount = Input { Value = 0 },
+				isUseLegacyPosition = Input { Value = 0 },
+				isUseLegacyAlgorithm = Input { Value = 0 },
+				isLegacyScaling = Input { Value = 0 },
+				blendGroup = Input { Value = 0 },
+				blendIn = Input { Value = 1 },
+				Source = Input {
+					SourceOp = "Transform1",
+					Source = "Output"
+				},
+				ignoreContentShape = Input { Value = 0 },
+				legacyIsProcessRGBOnly = Input { Value = 0 },
+				IsNoTemporalFramesReqd = Input { Value = 0 },
+				SmoothStrength = Input { Value = 0.400000005960464 },
+				zoomAmount = Input { Value = 0.400000005960464 },
+				blurTypeChoice = Input { Value = FuID { "BlurTypeRealistic" } },
+				blend = Input {
+					SourceOp = "ZoomBlur1Blend",
+					Source = "Value"
+				},
+				centerExclusion = Input { Value = 0 },
+				relativeRGBAGroup = Input { Value = 0 },
+				relativeR = Input { Value = 1 }
+			}
+		},
+		ZoomBlur1Blend = BezierSpline {
+			SplineColor = { Blue = 205, Green = 205, Red = 205 },
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0, RH = { 0, 0 } },
+				[8] = { 1, LH = { 4.64, 1 } }
+			}
+		}
+	}
+}

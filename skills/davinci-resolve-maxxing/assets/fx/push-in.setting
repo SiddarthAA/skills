@@ -1,0 +1,21 @@
+{
+	Tools = ordered() {
+		Transform1 = Transform {
+			Inputs = {
+				Size = Input {
+					Source = "Value",
+					SourceOp = "Transform1Size"
+				}
+			}
+		},
+		Transform1Size = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 1, RH = { 29.6666666666667, 1 } },
+				[89] = { 1.12, LH = { 59.3333333333333, 1.12 } }
+			},
+			SplineColor = { Blue = 225, Green = 0, Red = 225 }
+		}
+	}
+}

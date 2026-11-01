@@ -1,0 +1,9 @@
+{
+	Tools = ordered() {
+		BrightnessContrast1 = BrightnessContrast {
+			Inputs = {
+				Gain = Input { Expression = "iif(time % 4 < 2, 1, 0.25)" }
+			}
+		}
+	}
+}

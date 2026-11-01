@@ -1,0 +1,26 @@
+{
+	Tools = ordered() {
+		Rectangle1 = RectangleMask {
+			Inputs = {
+				ClippingMode = Input { Value = FuID { "None" } },
+				Height = Input { Value = 0.743840074384007 },
+				Width = Input { Value = 1.2 },
+				MaskWidth = Input { Value = 1920 },
+				MaskHeight = Input { Value = 1080 },
+				Filter = Input { Value = FuID { "Fast Gaussian" } },
+				Invert = Input { Value = 1 },
+				PixelAspect = Input { Value = { 1, 1 } },
+				UseFrameFormatSettings = Input { Value = 1 }
+			}
+		},
+		BrightnessContrast1 = BrightnessContrast {
+			Inputs = {
+				EffectMask = Input {
+					Source = "Mask",
+					SourceOp = "Rectangle1"
+				},
+				Gain = Input { Value = 0 }
+			}
+		}
+	}
+}

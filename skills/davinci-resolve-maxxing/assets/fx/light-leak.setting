@@ -1,0 +1,68 @@
+{
+	Tools = ordered() {
+		FastNoise1 = FastNoise {
+			Inputs = {
+				["Gamut.SLogVersion"] = Input { Value = FuID { "SLog2" } },
+				Height = Input { Value = 1080 },
+				Detail = Input { Value = 0 },
+				Width = Input { Value = 1920 },
+				Contrast = Input { Value = 1.6 },
+				Center = Input {
+					Source = "Value",
+					SourceOp = "XYPath1"
+				},
+				SeetheRate = Input { Value = 0.05 },
+				Color2Blue = Input { Value = 0.1 },
+				GlobalOut = Input { Value = 539 },
+				GlobalIn = Input { Value = -60 },
+				XScale = Input { Value = 0.6 },
+				Color2Green = Input { Value = 0.45 },
+				UseFrameFormatSettings = Input { Value = 1 }
+			}
+		},
+		XYPath1 = XYPath {
+			Inputs = {
+				X = Input {
+					Source = "Value",
+					SourceOp = "XYPath1X"
+				},
+				Y = Input {
+					Source = "Value",
+					SourceOp = "XYPath1Y"
+				}
+			},
+			DrawMode = "ModifyOnly",
+			ShowKeyPoints = false,
+			CtrlWZoom = false
+		},
+		XYPath1X = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0.3, Flags = { Linear = true }, RH = { 29.6666666666667, 0.433333333333333 } },
+				[89] = { 0.7, LH = { 59.3333333333333, 0.566666666666667 }, Flags = { Linear = true } }
+			},
+			SplineColor = { Blue = 0, Green = 0, Red = 255 }
+		},
+		XYPath1Y = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0.5, Flags = { Linear = true }, RH = { 29.6666666666667, 0.516666666666667 } },
+				[89] = { 0.55, LH = { 59.3333333333333, 0.533333333333333 }, Flags = { Linear = true } }
+			},
+			SplineColor = { Blue = 0, Green = 255, Red = 0 }
+		},
+		Merge1 = Merge {
+			Inputs = {
+				PerformDepthMerge = Input { Value = 0 },
+				Blend = Input { Value = 0.75 },
+				Foreground = Input {
+					Source = "Output",
+					SourceOp = "FastNoise1"
+				},
+				ApplyMode = Input { Value = FuID { "Screen" } }
+			}
+		}
+	}
+}

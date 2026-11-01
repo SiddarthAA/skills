@@ -15,7 +15,7 @@ subtitle styling, retime curves and Inspector keyframes (Fusion keyframes are th
 | Animated moves (punch, push, shake, zoom-to-point) | API (Fusion) | `R.motion`, `R.zoom`, or `R.fx(item, "Transform", {Size = {{0,1.2},{8,1}}})` [L] |
 | Effects on a clip | API (Fusion) | `R.fx(item, id, params)`: any ResolveFX, Fusion tool or .setting template (`pages/fusion.md`) [L] |
 | Effects Library drag (human way) | GUI | Search box + `gui drag` (below) [L]. Not visible to the API afterwards |
-| Transitions | API | `outgoing:AddTransition({type = "Cross Dissolve", category = "simple", position = "end", alignment = "center", duration = 12})` on the clip BEFORE the cut; centre splits the duration evenly (6+6). Returns the transition item. 49 work (`pages/fusion.md`) [L] |
+| Transitions | API | `outgoing:AddTransition({type = "Cross Dissolve", category = "simple", position = "end", alignment = "center", duration = 12})` on the clip BEFORE the cut; centre splits the duration evenly (6+6). Returns the transition item. 98 work: 67 Fusion templates (whip pans, crash zoom, glitch, flashes...), 30 simple, 1 OFX (`effects.md` §3) [L] |
 | Titles | API | `R.title` (carrier + Text+) or a title template via `R.fx(carrier, R.templates.."Edit/Titles/X.setting")` [L]. Never `Insert*IntoTimeline` |
 | Speed | API | `item:SetSpeed({Percentage=50})` keeps the item length [L]. **Ramps**: `R.fx(item, "TimeStretcher", {SourceTime = {{0,0},{30,15},{60,22},{89,80}}})` (frame-exact, `pages/fusion.md`) [L]; or the retime curve (GUI) |
 | Stabilize | API | `item:Stabilize()` works on free [L] |

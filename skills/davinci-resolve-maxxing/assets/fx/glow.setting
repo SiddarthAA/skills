@@ -1,0 +1,12 @@
+{
+	Tools = ordered() {
+		SoftGlow1 = SoftGlow {
+			Inputs = {
+				XGlowSize = Input { Value = 25 },
+				Filter = Input { Value = FuID { "Fast Gaussian" } },
+				Threshold = Input { Value = 0.6 },
+				Gain = Input { Value = 1.5 }
+			}
+		}
+	}
+}

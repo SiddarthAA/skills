@@ -7,6 +7,7 @@ local HOME = os.getenv("HOME")
 R.dir = HOME .. "/resolve-bridge/"
 R.templates = R.dir .. "templates/"  -- built-in Fusion templates unpacked by install.sh: R.fx(item, R.templates .. "Edit/Effects/CCTV.setting")
 R.assets = R.dir .. "assets/"
+R.effects = R.dir .. "fx/"  -- the skill's ready-made effect presets (assets/fx, linked by install.sh): R.fx(item, R.effects .. "glitch.setting")
 
 -- ── handles ──────────────────────────────────────────────────────────────────
 function R.pm() return resolve:GetProjectManager() end
@@ -242,11 +243,39 @@ function R.has_font(family)
   return fm:GetFontList()[family] ~= nil
 end
 
-local function key(tool, input, frames)  -- frames = {{frame, value}, ...}; adds to existing animation
+-- Easing = CSS cubic-bezier {x1, y1, x2, y2} per segment. Fusion stores Bezier handles RELATIVE to their key
+-- ({dframes, dvalue}); script-set keys get "linear" handles (a third of the way to the neighbour key).
+R.EASE = {linear = {1/3, 1/3, 2/3, 2/3}, inout = {0.42, 0, 0.58, 1}, ["in"] = {0.42, 0, 1, 1}, out = {0, 0, 0.58, 1},
+  smooth = {1/3, 0, 2/3, 1}, snap = {0.16, 1, 0.3, 1}, back = {0.34, 1.56, 0.64, 1}, hold = "hold"}
+local function shape(sp, e)
+  local k, fs = sp:GetKeyFrames(), {}
+  for f in pairs(k) do fs[#fs + 1] = f end
+  table.sort(fs)
+  for i = 1, #fs - 1 do
+    local a, b = fs[i], fs[i + 1]
+    local dx, dy = b - a, k[b][1] - k[a][1]
+    if e == "hold" then k[b].Flags = {StepIn = true}  -- StepIn on the LATER key holds the earlier value until it
+    else
+      k[a].RH = {e[1] * dx, e[2] * dy}
+      k[b].LH = {(e[3] - 1) * dx, (e[4] - 1) * dy}
+    end
+  end
+  sp:SetKeyFrames(k, true)
+end
+
+-- frames = {{frame, value}, ..., ease = "out"}; adds to existing animation. ease: a name in R.EASE or {x1, y1, x2, y2}
+-- (applied to every segment of this input; Center/XYPath eases X and Y).
+local function key(tool, input, frames, ease)
   if not tool[input]:GetConnectedOutput() then
-    tool:AddModifier(input, input:find("Center") and "XYPath" or "BezierSpline")
+    tool:AddModifier(input, tool[input]:GetAttrs().INPS_DataType == "Point" and "XYPath" or "BezierSpline")
   end
   for _, kv in ipairs(frames) do tool[input][kv[1]] = kv[2] end
+  if tool.ID:match("^ofx%.") then print("R.key: live keys on a ResolveFX render as a static value; key it through R.fx(item, id, {p = {{f, v}...}}) or R.save_fx + R.fx(file)") end
+  ease = ease or frames.ease
+  if ease then
+    local e, m = type(ease) == "table" and ease or assert(R.EASE[ease], "unknown ease " .. tostring(ease)), tool[input]:GetConnectedOutput():GetTool()
+    if m.ID == "XYPath" then shape(m.X:GetConnectedOutput():GetTool(), e); shape(m.Y:GetConnectedOutput():GetTool(), e) else shape(m, e) end
+  end
 end
 R.key = key
 
@@ -261,7 +290,8 @@ end
 -- Title on its own track with exact timing. NEVER use InsertTitleIntoTimeline/InsertFusionTitleIntoTimeline
 -- on a real edit: they ripple-insert 5 s on V1 at the playhead.
 -- o: text, at, len, track(2), font/style (default R.default_font()), size (Text+ Size: 0.05 caption, 0.08 subhead, 0.16 headline),
---    color{r,g,b}, center{x,y} (0..1, y up), anim("pop"|"fade"|"none"), tracking(0), outline{r,g,b,thickness}
+--    color{r,g,b}, center{x,y} (0..1, y up), tracking(0), outline{r,g,b,thickness},
+--    anim: "pop" (default) | "fade" | "type" | "words" | "rise" | "slide" | "none"; speed = frames (per line, word or letter)
 -- Returns item, comp, text tool.
 -- First bold sans Fusion can see (Open Sans is NOT installed on stock Ubuntu; DejaVu Sans is).
 function R.default_font()
@@ -294,11 +324,27 @@ function R.title(tl, o)
   mrg.Background = comp:FindTool("MediaIn1").Output
   mrg.Foreground = txt.Output
   comp:FindTool("MediaOut1").Input = mrg.Output
-  local size = o.size or 0.08
-  if o.anim == "pop" or o.anim == nil then
-    key(txt, "Size", {{0, size * 1.45}, {5, size}})
-  elseif o.anim == "fade" then
+  local size, a, n = o.size or 0.08, o.anim or "pop", #o.text
+  if a == "pop" then
+    key(txt, "Size", {{0, size * 1.45}, {5, size}, ease = "out"})
+  elseif a == "fade" then
     key(mrg, "Blend", {{0, 0}, {8, 1}})
+  elseif a == "type" then  -- typewriter: Text+ Write On End, o.speed frames for the whole line (default 1 char/frame)
+    key(txt, "End", {{0, 0}, {o.speed or math.max(6, n), 1}})
+  elseif a == "words" then  -- word by word, o.speed frames per word (Write On End jumps to each word's end and holds)
+    local pts, i = {ease = "hold"}, 0
+    for e in o.text:gmatch("%S+()") do pts[#pts + 1] = {i * (o.speed or 6), (e - 1) / n}; i = i + 1 end
+    key(txt, "End", pts)
+  elseif a == "rise" then  -- letters rise and fade in one after another (Follower modifier, o.speed frames apart)
+    txt:AddModifier("StyledText", "StyledTextFollower")
+    local fo = txt.StyledText:GetConnectedOutput():GetTool()
+    fo:SetInput("Text", o.text); fo:SetInput("Delay", o.speed or 2)
+    key(fo, "CharacterOffset", {{0, {0, -0.1}}, {10, {0, 0}}, ease = "out"})
+    key(fo, "Opacity1", {{0, 0}, {10, 1}})
+  elseif a == "slide" then  -- slides up into place and fades in
+    local c = o.center or {0.5, 0.5}
+    key(txt, "Center", {{0, {c[1], c[2] - 0.06}}, {10, c}, ease = "snap"})
+    key(mrg, "Blend", {{0, 0}, {6, 1}})
   end
   return item, comp, txt
 end
@@ -333,16 +379,22 @@ end
 function R.fx(item, id, params)
   local comp = item:GetFusionCompCount() > 0 and item:GetFusionCompByIndex(1) or item:AddFusionComp()
   local mo = comp:FindTool("MediaOut1")
-  local t
+  local t, head
   if id:match("%.setting$") then  -- macro/template file: paste it; Paste leaves exactly the pasted top-level tools selected
     -- comp:Paste() returns false unless the comp is the one open in the Fusion page
     local tl, pg = R.tl(), resolve:GetCurrentPage()
     R.seek(tl, item:GetStart() - tl:GetStartFrame())  -- seek first: SetCurrentTimecode is ignored on the Fusion page
+    -- the Fusion page opens the TOP enabled clip under the playhead: switch off the video tracks above this one meanwhile
+    local off, ti = {}, item:GetTrackTypeAndIndex()[2]
+    for i = ti + 1, tl:GetTrackCount("video") do
+      if tl:GetIsTrackEnabled("video", i) then tl:SetTrackEnable("video", i, false); off[#off + 1] = i end
+    end
     resolve:OpenPage("fusion")
     for _ = 1, 30 do  -- wait until the Fusion page really shows this clip's comp, or Paste lands elsewhere
       if resolve:Fusion():GetCurrentComp() == comp then break end
       bmd.wait(0.1)
     end
+    for _, i in ipairs(off) do tl:SetTrackEnable("video", i, true) end
     assert(resolve:Fusion():GetCurrentComp() == comp, "Fusion page did not open this clip's comp")
     -- one argument only: bmd.readstring(s, x) returns nil, and Paste(nil) pastes the CLIPBOARD instead
     local settings = bmd.readstring((assert(R.readfile(id), "cannot read " .. id)))
@@ -358,18 +410,44 @@ function R.fx(item, id, params)
       if out and not fed then t = x end
     end
     assert(t, "no output tool found in " .. id)
+    -- a chain (A -> B -> t, saved with R.save_fx): walk back along main inputs to its head, which takes the picture
+    head = t
+    while true do
+      local src = head:FindMainInput(1) and head:FindMainInput(1):GetConnectedOutput()
+      if src and pasted[src:GetTool().Name] then head = src:GetTool() else break end
+    end
     resolve:OpenPage(pg)
   else
     t = assert(comp:AddTool(id), "AddTool failed: " .. id)
   end
-  local main = t:FindMainInput(1)  -- nil for generators/titles: their output simply replaces the picture
+  local main = (head or t):FindMainInput(1)  -- nil for generators/titles: their output simply replaces the picture
   if main then main:ConnectTo(mo.Input:GetConnectedOutput() or comp:FindTool("MediaIn1").Output) end
   mo.Input:ConnectTo(t:FindMainOutput(1))  -- macros output on "MainOutput1", tools on "Output"
+  local keyed = false
   for k, v in pairs(params or {}) do  -- SetInput on a wrong ID is silently ignored: check it exists
     assert(t[k], "no input '" .. k .. "' on " .. id .. "; R.inputs(tool) lists them")
-    if type(v) == "table" and type(v[1]) == "table" then key(t, k, v) else t:SetInput(k, v) end
+    if type(v) == "table" and type(v[1]) == "table" then key(t, k, v); keyed = true else t:SetInput(k, v) end
+  end
+  if keyed and t.ID:match("^ofx%.") then
+    -- keyframes added live to a ResolveFX read back fine but RENDER the static value; pasted from a .setting they animate
+    local tmp = R.save_fx({t}, R.dir .. "ofx_keys.setting")
+    mo.Input:ConnectTo(t:FindMainInput(1):GetConnectedOutput()); t:Delete()
+    return R.fx(item, tmp)
   end
   return t, comp
+end
+
+function R.writefile(p, s)
+  local f = ffi.C.fopen(p, "wb")
+  assert(f ~= nil, "cannot write " .. p .. " (does the folder exist?)")
+  ffi.C.fwrite(s, 1, #s, f); ffi.C.fclose(f)
+  return p
+end
+
+-- Save Fusion tools (a chain, with their keyframes and modifiers) as a .setting that R.fx(item, path) re-applies to any clip.
+-- tools: a list of tools in one comp, e.g. the returns of several R.fx calls.
+function R.save_fx(tools, path)
+  return R.writefile(path, bmd.writestring(tools[1]:Comp():CopySettings(tools)))
 end
 
 -- A tool's own settable inputs with current values (skips images, masks and the common Settings page): param IDs for R.fx.
@@ -411,6 +489,33 @@ function R.motion(item, o)
   end
   if o.blur ~= false then xf:SetInput("MotionBlur", 1); xf:SetInput("Quality", 4) end
   return xf
+end
+
+-- Follow a track made by scripts/track.py (OpenCV): key tool[input] (a Point: Text+ Center, a mask's Center, Transform Center)
+-- to the tracked box centre. item = the TRACKED clip on the timeline (its source frames are the track's frame numbers);
+-- o.on = the item whose comp holds the tool when that is another clip (a title carrier above it). o.offset = {dx, dy} (fractions, y up);
+-- o.size = scale -> also key the mask's Width/Height to the box (masks measure both in frame WIDTHS);
+-- o.stabilize = true -> key a Transform Center so the object stays where it was on the item's first tracked frame.
+-- Returns the number of keyed frames.
+function R.track(item, tool, input, path, o)
+  o = o or {}
+  local t = assert(dofile(path), "bad track file " .. path)
+  local on = o.on or item
+  local s0, n, d = item:GetSourceStartFrame() + on:GetStart() - item:GetStart(), on:GetDuration(), o.offset or {0, 0}
+  local pts, wp, hp, first = {}, {}, {}, nil
+  for f = 0, n - 1 do
+    local b = t.frames[s0 + f]
+    if b then
+      first = first or b
+      if o.stabilize then pts[#pts + 1] = {f, {0.5 - (b[1] - first[1]), 0.5 - (b[2] - first[2])}}
+      else pts[#pts + 1] = {f, {b[1] + d[1], b[2] + d[2]}} end
+      if o.size then wp[#wp + 1] = {f, b[3] * o.size}; hp[#hp + 1] = {f, b[4] * t.h / t.w * o.size} end
+    end
+  end
+  assert(#pts > 0, "no tracked frames in source range " .. s0 .. "-" .. s0 + n - 1)
+  key(tool, input, pts)
+  if o.size then key(tool, "Width", wp); key(tool, "Height", hp) end
+  return #pts
 end
 
 -- Zoom onto a point and back (screen-recording demos). target = {x, y} as fractions of the frame measured from the

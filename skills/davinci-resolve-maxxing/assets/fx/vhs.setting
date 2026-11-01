@@ -1,0 +1,79 @@
+{
+	Tools = ordered() {
+		Blur1 = Blur {
+			Inputs = {
+				Filter = Input { Value = FuID { "Fast Gaussian" } },
+				YBlurSize = Input { Value = 0.3 },
+				LockXY = Input { Value = 0 },
+				XBlurSize = Input { Value = 2.5 }
+			}
+		},
+		ChannelShifter1 = KD_ChannelShifter {
+			Inputs = {
+				Center1 = Input { Value = { 0.503, 0.5 } },
+				Center3 = Input { Value = { 0.497, 0.5 } },
+				Image = Input {
+					SourceOp = "Blur1",
+					Source = "Output"
+				}
+			}
+		},
+		Scanlines1 = ofx.com.blackmagicdesign.resolvefx.ScanlineV2 {
+			Inputs = {
+				appearanceGroup = Input { Value = 1 },
+				sharpness = Input { Value = 1 },
+				shift = Input { Value = 0 },
+				colorGroup = Input { Value = 1 },
+				color1Red = Input { Value = 1 },
+				color1Green = Input { Value = 1 },
+				color1Blue = Input { Value = 1 },
+				color2Red = Input { Value = 0 },
+				color2Green = Input { Value = 0 },
+				color2Blue = Input { Value = 0 },
+				phaseOffR = Input { Value = 0 },
+				phaseOffG = Input { Value = 0 },
+				phaseOffB = Input { Value = 0 },
+				compositeGroup = Input { Value = 1 },
+				LinesOnly = Input { Value = 0 },
+				CompositeType = Input { Value = FuID { "COMPOSITE_OVERLAY" } },
+				width = Input { Value = 0.4 },
+				isLegacyCentering = Input { Value = 0 },
+				blendIn = Input { Value = 1 },
+				angle = Input { Value = 0 },
+				ignoreContentShape = Input { Value = 0 },
+				frequency = Input { Value = 40 },
+				IsNoTemporalFramesReqd = Input { Value = 0 },
+				srcProcessingAlphaMode = Input { Value = -1 },
+				dstProcessingAlphaMode = Input { Value = -1 },
+				blend = Input { Value = 0.8 },
+				resolvefxVersion = Input { Value = "1.2" },
+				legacyIsProcessRGBOnly = Input { Value = 0 },
+				blendGroup = Input { Value = 0 },
+				Source = Input {
+					SourceOp = "ChannelShifter1",
+					Source = "Output"
+				}
+			}
+		},
+		FilmGrain1 = FilmGrain {
+			Inputs = {
+				Input = Input {
+					SourceOp = "Scanlines1",
+					Source = "Output"
+				},
+				MasterStrength = Input { Value = 0.06 }
+			}
+		},
+		BrightnessContrast1 = BrightnessContrast {
+			Inputs = {
+				Input = Input {
+					SourceOp = "FilmGrain1",
+					Source = "Output"
+				},
+				Contrast = Input { Value = -0.08 },
+				Saturation = Input { Value = 0.7 },
+				Lift = Input { Value = 0.04 }
+			}
+		}
+	}
+}

@@ -1,0 +1,138 @@
+{
+	Tools = ordered() {
+		Merge2 = Merge {
+			Inputs = {
+				Foreground = Input {
+					Source = "Output",
+					SourceOp = "Background1"
+				},
+				PerformDepthMerge = Input { Value = 0 }
+			}
+		},
+		Background1 = Background {
+			Inputs = {
+				Height = Input { Value = 1080 },
+				UseFrameFormatSettings = Input { Value = 1 },
+				["Gamut.SLogVersion"] = Input { Value = FuID { "SLog2" } },
+				EffectMask = Input {
+					Source = "Mask",
+					SourceOp = "Rectangle1"
+				},
+				GlobalOut = Input { Value = 599 },
+				TopLeftRed = Input { Value = 0.9 },
+				TopLeftGreen = Input { Value = 0.2 },
+				TopLeftBlue = Input { Value = 0.2 },
+				Width = Input { Value = 1920 }
+			}
+		},
+		Rectangle1 = RectangleMask {
+			Inputs = {
+				CornerRadius = Input { Value = 0.2 },
+				Height = Input { Value = 0.075 },
+				UseFrameFormatSettings = Input { Value = 1 },
+				Width = Input {
+					Source = "Value",
+					SourceOp = "Rectangle1Width"
+				},
+				Center = Input { Value = { 0.27, 0.16 } },
+				Filter = Input { Value = FuID { "Fast Gaussian" } },
+				MaskWidth = Input { Value = 1920 },
+				MaskHeight = Input { Value = 1080 },
+				PixelAspect = Input { Value = { 1, 1 } },
+				ClippingMode = Input { Value = FuID { "None" } }
+			}
+		},
+		Rectangle1Width = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0, RH = { 1.28, 0.42 } },
+				[8] = { 0.42, LH = { 2.4, 0.42 } }
+			},
+			SplineColor = { Blue = 0, Green = 255, Red = 225 }
+		},
+		Text1 = TextPlus {
+			Version = 1,
+			Inputs = {
+				Size = Input { Value = 0.04 },
+				Font = Input { Value = "Open Sans" },
+				Height = Input { Value = 1080 },
+				UseFrameFormatSettings = Input { Value = 1 },
+				["Gamut.SLogVersion"] = Input { Value = FuID { "SLog2" } },
+				LayoutRotation = Input { Value = 1 },
+				Center = Input {
+					Source = "Value",
+					SourceOp = "XYPath1"
+				},
+				Softness1 = Input { Value = 1 },
+				VerticalJustificationNew = Input { Value = 3 },
+				HorizontalJustificationNew = Input { Value = 3 },
+				Style = Input { Value = "Bold" },
+				TransformRotation = Input { Value = 1 },
+				Wrap = Input { Value = 1 },
+				StyledText = Input { Value = "Priya Shah  /  Designer" },
+				GlobalOut = Input { Value = 599 },
+				Width = Input { Value = 1920 }
+			}
+		},
+		XYPath1 = XYPath {
+			CtrlWZoom = false,
+			DrawMode = "ModifyOnly",
+			Inputs = {
+				X = Input {
+					Source = "Value",
+					SourceOp = "XYPath1X"
+				},
+				Y = Input {
+					Source = "Value",
+					SourceOp = "XYPath1Y"
+				}
+			},
+			ShowKeyPoints = false
+		},
+		XYPath1X = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0.27, RH = { 1.6, 0.27 } },
+				[10] = { 0.27, LH = { 3, 0.27 } }
+			},
+			SplineColor = { Blue = 0, Green = 0, Red = 255 }
+		},
+		XYPath1Y = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0.0999999999999999, RH = { 1.6, 0.16 } },
+				[10] = { 0.16, LH = { 3, 0.16 } }
+			},
+			SplineColor = { Blue = 0, Green = 255, Red = 0 }
+		},
+		Merge1 = Merge {
+			Inputs = {
+				PerformDepthMerge = Input { Value = 0 },
+				Blend = Input {
+					Source = "Value",
+					SourceOp = "Merge1Blend"
+				},
+				Foreground = Input {
+					Source = "Output",
+					SourceOp = "Text1"
+				},
+				Background = Input {
+					Source = "Output",
+					SourceOp = "Merge2"
+				}
+			}
+		},
+		Merge1Blend = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0, Flags = { Linear = true }, RH = { 2, 0.333333333333333 } },
+				[6] = { 1, LH = { 4, 0.666666666666667 }, Flags = { Linear = true } }
+			},
+			SplineColor = { Blue = 205, Green = 205, Red = 205 }
+		}
+	}
+}

@@ -1,5 +1,7 @@
 # Fusion page + effects (applying any effect to a clip)
 
+Recipes for the usual effects (presets, easing, transitions, text animation, tracking, composites): **`effects.md`**. This page is the mechanics.
+
 Fusion is fully scriptable from the console (`comp:AddTool`, inputs, keyframes, expressions, macros), so for agents this is the effects
 engine for every page. **[L]** = verified on free 21.1.1 Linux.
 
@@ -30,6 +32,8 @@ print(R.inputs(tool))   -- the tool's own params with current values (skips the 
 | No `bmd.readfile`/`io` in the console | `R.readfile(path)` (ffi + libc) |
 | Templates paste several top-level tools, and Fusion may auto-connect them to MediaOut | the output tool = the pasted tool that no OTHER pasted tool reads from |
 | Generators/titles have no main input | their output simply replaces the picture (use a carrier clip for overlays) |
+| A saved chain (A -> B -> C) pasted onto a clip: wiring C's input to the picture drops A and B | walk back from the output tool along main inputs to the chain's head and wire THAT (R.save_fx files) |
+| **Keys added live to a ResolveFX input read back right but RENDER the static value** (ZoomBlur blend keyed 0 -> 1: same frame at f0 and f9) | params with keys on an `ofx.*` tool: save it to a .setting, delete it, paste it back (pasted keys animate) |
 
 ## Speed ramps (verified frame-exact) [L]
 ```lua
@@ -68,7 +72,7 @@ source +100 instead of +0 [L].
 | `comp:AddTool(id)`, `comp:FindTool(name)`, `comp:FindToolByID(id)`, `comp:GetToolList(selectedOnly)`, `tool:Delete()` | |
 | Connect: `merge.Background = mi.Output`, `input:ConnectTo(output)`; read: `input:GetConnectedOutput()`, `output:GetConnectedInputs()` | |
 | `tool:SetInput(id, v)`, `tool:GetInput(id, frame)`, `tool[id][frame] = v` | Text+: `StyledText`, `Font`, `Style`, `Size`, `Center` {x,y} 0..1 **y up**, `Red1/Green1/Blue1`, `CharacterSpacing`, `Enabled2..8` shading elements |
-| Keyframes: `tool:AddModifier("Size", "BezierSpline"); tool.Size[0] = 2; tool.Size[8] = 1` (XYPath for Center) | `R.key(tool, input, {{f, v}, ...})` |
+| Keyframes: `tool:AddModifier("Size", "BezierSpline"); tool.Size[0] = 2; tool.Size[8] = 1` (XYPath for Point inputs) | `R.key(tool, input, {{f, v}, ..., ease = "out"})`. Spline handles: `spline:GetKeyFrames()` / `SetKeyFrames(t, true)`, `RH`/`LH` relative `{dframes, dvalue}` (absolute inside .setting files), hold = `Flags = {StepIn = true}` on the later key [L] |
 | Expressions: `tool.MasterStrength:SetExpression("0.3 + 0.2*sin(time/3)")`, `GetExpression()` | [L] |
 | `tool:SaveSettings(path.setting)` / `tool:LoadSettings(path)`; `comp:Paste(bmd.readstring(text))` (Fusion page only) | Turn anything built in Fusion into a reusable template |
 | `item:ExportFusionComp(path, 1)` / `item:ImportFusionComp(path)` | Whole comp as .comp (R.template uses it) |
@@ -84,7 +88,8 @@ source +100 instead of +0 [L].
   "Arrow Iris", "Cross Iris", "Diamond Iris", "Eye Iris", "Hexagon Iris", "Oval Iris", "Pentagon Iris", "Square Iris", "Triangle Iris",
   "Barn Door", "Push", "Slide", "Split", "Box", "Heart", "Star", "Band Wipe", "Center Wipe", "Clock Wipe", "Edge Wipe", "Radial Wipe",
   "Spiral Wipe", "Venetian Blind Wipe", "X Wipe".
-- fusion (18): Circles, Cube, Disarrange, Edgy, Fold, Glitch, Glow, Mosaic, Perspective, Posterize, Radial, Rotate, Shash, Shatter, Spin, Warp, Zoom In, Brightness Flash.
+- fusion (67, every template in Templates.drfx Edit/Transitions, verified 2026-11-01): grouped by use in `effects.md` §3 (Pan Left/Right = whip pans,
+  Crash Zoom, Glitch, Block Glitch, RGB Splitter, Brightness/Inverse/Three Color Flash, Tunnel of Light, Stretch Blur, Slice Push, Cube, Page Curl...).
 - ofx (1): Burn Away. A wrong category returns nil. **Center alignment needs source handles on both clips** (nil otherwise).
 
 ## Tracking in Fusion
@@ -92,8 +97,9 @@ The Tracker tool adds fine by script (`R.fx(item, "Tracker")`; inputs PatternCen
 **`SetInput("TrackForward", 1)` gives no usable track**, even with the comp open in the Fusion page: no keyframes after 8 s, TrackedCenter1 stays at its
 default [L]. Later, leaving the Fusion page asked to "cancel the current render", so a track may have started without progressing. Unverified.
 In the Fusion page GUI (Inspector > Trackers tab, Tracking buttons at about (1620-1760, 222-250)) the buttons stayed greyed out and both viewers
-black in our session (unverified route). Working routes: the Color page tracker for window grades (`pages/color.md`, verified); or track outside
-Resolve (e.g. OpenCV in a uv script) and write the path as keyframes with `R.key(tool, "Center", {{f, {x, y}}, ...})` (untested idea).
+black in our session (unverified route). Working routes: the Color page tracker for window grades (`pages/color.md`, verified); or **track outside
+Resolve with `scripts/track.py` (OpenCV) and key it with `R.track`** (verified 2026-11-01: face blur and a label following a face on handheld
+footage; `effects.md` §6).
 
 ## Fusion page GUI (rarely needed)
 Shift+5 or `resolve:OpenPage("fusion")` shows the comp of the clip under the playhead (seek BEFORE switching). Nodes, Inspector and keyframes

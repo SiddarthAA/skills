@@ -1,0 +1,28 @@
+{
+	Tools = ordered() {
+		Ellipse1 = EllipseMask {
+			Inputs = {
+				ClippingMode = Input { Value = FuID { "None" } },
+				Height = Input { Value = 0.2 },
+				Width = Input { Value = 0.12 },
+				MaskWidth = Input { Value = 1920 },
+				Center = Input { Value = { 0.62, 0.62 } },
+				MaskHeight = Input { Value = 1080 },
+				Filter = Input { Value = FuID { "Fast Gaussian" } },
+				UseFrameFormatSettings = Input { Value = 1 },
+				SoftEdge = Input { Value = 0.02 },
+				PixelAspect = Input { Value = { 1, 1 } }
+			}
+		},
+		Blur1 = Blur {
+			Inputs = {
+				XBlurSize = Input { Value = 40 },
+				Filter = Input { Value = FuID { "Fast Gaussian" } },
+				EffectMask = Input {
+					Source = "Mask",
+					SourceOp = "Ellipse1"
+				}
+			}
+		}
+	}
+}

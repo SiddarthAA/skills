@@ -1,0 +1,30 @@
+{
+	Tools = ordered() {
+		FlickerAddition1 = ofx.com.blackmagicdesign.resolvefx.FlickerAddition {
+			Inputs = {
+				flickerPauseLength = Input { Value = 0.5 },
+				flickerPauseInterval = Input { Value = 5 },
+				randSeed = Input { Value = 1 },
+				dstProcessingAlphaMode = Input { Value = -1 },
+				ignoreContentShape = Input { Value = 0 },
+				flickerRange = Input { Value = 0.6 },
+				flickerSpeed = Input { Value = 2 },
+				flickerRand = Input { Value = 0.8 },
+				IsNoTemporalFramesReqd = Input { Value = 0 },
+				srcProcessingAlphaMode = Input { Value = -1 },
+				resolvefxVersion = Input { Value = "1.1" },
+				legacyIsProcessRGBOnly = Input { Value = 0 },
+				blendIn = Input { Value = 1 },
+				flickerAlphaFade = Input { Value = 1 },
+				flickerType = Input { Value = FuID { "FLICKER_TYPE_GAMMA" } },
+				isFlickerR = Input { Value = 1 },
+				flickerSmoothness = Input { Value = 0.5 },
+				blend = Input { Value = 0 },
+				isFlickerG = Input { Value = 1 },
+				isFlickerB = Input { Value = 1 },
+				blendGroup = Input { Value = 0 },
+				flickerQualityGroup = Input { Value = 1 }
+			}
+		}
+	}
+}

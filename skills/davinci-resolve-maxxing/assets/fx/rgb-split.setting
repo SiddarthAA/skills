@@ -1,0 +1,10 @@
+{
+	Tools = ordered() {
+		ChannelShifter1 = KD_ChannelShifter {
+			Inputs = {
+				Center1 = Input { Value = { 0.508, 0.5 } },
+				Center3 = Input { Value = { 0.492, 0.5 } }
+			}
+		}
+	}
+}

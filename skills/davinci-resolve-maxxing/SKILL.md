@@ -32,7 +32,8 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
    |---|---|---|
    | Media | `references/pages/media.md` | `R.import`, `R.find`, metadata, `R.sync` |
    | Edit / Cut | `references/pages/edit.md`, `pages/cut.md` | `R.timeline`, `R.place`, `R.keep`, `R.frame`, `R.title`, transitions, subtitles |
-   | Fusion + effects | `references/pages/fusion.md` | **`R.fx(item, id, params)`**: any of the 53 ResolveFX, about 500 Fusion tools, 417 templates; `R.motion`, `R.zoom` |
+   | **Effects cookbook** | **`references/effects.md`** | 18 ready presets (`R.fx(item, R.effects .. "glitch.setting")`), easing (`R.key ... ease`), 98 transitions, text animation (`R.title anim`), tracking (`track.py` + `R.track`), freeze/reverse/split/PiP/overlays |
+   | Fusion + effects | `references/pages/fusion.md` | **`R.fx(item, id, params)`**: any of the 53 ResolveFX, about 500 Fusion tools, 417 templates; `R.save_fx`; `R.motion`, `R.zoom` |
    | Color | `references/pages/color.md` | `R.lut`, `R.cdl`, `R.group`, DRX grade templates, node keys |
    | Fairlight | `references/pages/fairlight.md` | clip levels, `R.normalize`, `fl_eq.py`, config presets via `ApplyFairlightPresetToCurrentTimeline` |
    | Deliver | `references/pages/deliver.md` | `R.render`, then `finish.py` |
@@ -52,7 +53,8 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
 - Never use stereo 3D features (`ConvertTimelineToStereo`, stereo 3D clips; stereo audio tracks are fine): on free the whole project becomes unopenable. Probe unknown calls in a throwaway project.
 - Never call `TranscribeAudio`, `CreateSubtitlesFromAudio` or `AutoAlignClips` (they crash Resolve). Other Studio calls open an upsell modal: dismiss it with Escape.
 - Never use `Insert*IntoTimeline` (they ripple-insert 150 frames into V1). Titles: `R.title` or a title template on a carrier.
-- Never wrap Fusion edits in `comp:Lock()`. Apply effects with `R.fx` (ResolveFX need their `Source` input; macros their `MainOutput1`).
+- Never wrap Fusion edits in `comp:Lock()`. Apply effects with `R.fx` (ResolveFX need their `Source` input; macros their `MainOutput1`; keys on a ResolveFX only render when pasted, which `R.fx` does).
+- A new project is 24 fps until its first timeline: pass `fps` on the FIRST `R.timeline` call, or 30 fps clips leave black gaps.
 - Fonts must be visible to Fusion (`R.has_font`); a missing font renders nothing and raises no error.
 - `R.place` for every clip: exclusive ends, absolute record frames, missing tracks and out-of-range sources all fail silently otherwise.
 - Prove every claim with pixels or numbers: `R.still` before/after for edits and effects, `ffprobe` for renders, `finish.py` QA (LUFS) for audio.
@@ -69,9 +71,11 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
 | `scripts/analyze.py`, `transcribe.py`, `captions.py`, `sheet.py` | beats, cuts, silence, loudness; word timings; captions on the timeline clock; contact sheets |
 | `scripts/finish.py` | Master to Reels/TikTok/Shorts/YouTube/LinkedIn/X/hero/podcast, loudness, captions, QA |
 | `scripts/fl_eq.py`, `assets/fairlight/` | Write Fairlight EQ presets; starter EQ/Dynamics presets |
+| `scripts/track.py`, `assets/fx/` | OpenCV object/face tracking for `R.track`; effect presets + `build.lua` (their builders) for `R.fx` |
 | `references/capability-matrix.md` | Every feature: API / template / GUI / not on free, plus the coverage scorecard |
 | `references/pages/*.md`, `references/project-and-prefs.md` | Per-page how-to with verified calls, templates and GUI coordinates |
 | `references/effects-catalog.tsv` | The 53 ResolveFX on free: ID, category, image input, params with defaults |
+| `references/effects.md` | Effects cookbook: presets, easing, transitions, titles, tracking, composites |
 | `references/api.md`, `gotchas.md`, `gui.md` | R helpers; everything that crashes, blocks or fails silently; GUI driving |
 | `references/recipes.md`, `craft-and-specs.md`, `mac.md` | Genre recipes; platform specs and craft; macOS |
 

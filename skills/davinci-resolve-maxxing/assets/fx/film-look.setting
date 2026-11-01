@@ -1,0 +1,45 @@
+{
+	Tools = ordered() {
+		FilmGrain1 = FilmGrain {
+			Inputs = {
+				MasterStrength = Input { Value = 0.06 }
+			}
+		},
+		Vignette1 = ofx.com.blackmagicdesign.resolvefx.Vignette {
+			Inputs = {
+				appearanceGroup = Input { Value = 1 },
+				xyPosition = Input { Value = { 0.5, 0.5 } },
+				shapeGroup = Input { Value = 1 },
+				resolvefxVersion = Input { Value = "1.2" },
+				rotation = Input {
+					Disabled = true,
+					Value = 0
+				},
+				anamorphism = Input { Value = 1.77999997138977 },
+				colorRed = Input { Value = 0 },
+				colorGreen = Input { Value = 0 },
+				colorBlue = Input { Value = 0 },
+				blendIn = Input { Value = 1 },
+				centerX = Input { Value = 0.5 },
+				CompositeType = Input { Value = FuID { "COMPOSITE_MULTIPLY" } },
+				blendGroup = Input { Value = 0 },
+				shape = Input { Value = FuID { "VIGNETTE_SHAPE_OVAL" } },
+				size = Input { Value = 0.8 },
+				Source = Input {
+					SourceOp = "FilmGrain1",
+					Source = "Output"
+				},
+				ignoreContentShape = Input { Value = 0 },
+				legacyIsProcessRGBOnly = Input { Value = 0 },
+				IsNoTemporalFramesReqd = Input { Value = 0 },
+				srcProcessingAlphaMode = Input { Value = -1 },
+				dstProcessingAlphaMode = Input { Value = -1 },
+				blend = Input { Value = 0 },
+				centerY = Input { Value = 0.5 },
+				controlMode = Input { Value = FuID { "VIGNETTE_PLUGIN_MODE_BASIC" } },
+				transparency = Input { Value = 0.45 },
+				softness = Input { Value = 0.8 }
+			}
+		}
+	}
+}

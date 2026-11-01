@@ -1,0 +1,22 @@
+{
+	Tools = ordered() {
+		CameraShake1 = CameraShake {
+			Inputs = {
+				XDeviation = Input { Value = 0.12 },
+				YDeviation = Input { Value = 0.12 },
+				RotationDeviation = Input { Value = 0.08 },
+				Speed = Input { Value = 0.35 },
+				OverallStrength = Input { Value = 0.25 }
+			}
+		},
+		Transform1 = Transform {
+			Inputs = {
+				Input = Input {
+					Source = "Output",
+					SourceOp = "CameraShake1"
+				},
+				Size = Input { Value = 1.06 }
+			}
+		}
+	}
+}

@@ -5,17 +5,20 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 ✓ = verified in the lab (free 21.1.1, Ubuntu 24.04). Details live in `pages/<page>.md`.
 
 ## Scorecard
-| Measure | 2026-10-29 | 2026-10-31 |
+| Measure | 2026-10-29 (before) | now (2026-10-31 / 11-01 runs) |
 |---|---|---|
 | API methods exercised (of 416 in the 21.1 stub) | 149 (36%) | **400 (96%)**. Untouched: cloud projects + SetCurrentDatabase (5), burn-in presets (3), mattes (3), clone tool settings/stop (2), Quit, EncryptDCTL, RegenerateMagicMask |
 | Blind validation runs (fresh agents, skill only) | 1 (talking-head reel) | **5** (+ effects/edit, Fairlight mix, Color grade, captioned vertical delivery); every friction point fixed |
 | ResolveFX usable from script | 0 of 53 (rendered black) | **53 of 53** attach and render through Fusion (41 change the frame at defaults; 12 are identity until set) |
 | Fusion tools proven | 6 | any tool via `R.fx` (registry of about 500) + expressions + `.setting` macros |
 | Fusion templates usable | 0 | **417** built-in via `R.fx` (CCTV, Watermark, Binoculars, DVE, Headline title verified) |
-| Transitions by API | 6 | **49** (30 simple, 18 Fusion, 1 OFX) |
+| Transitions by API | 6 | 49 (2026-10-31) -> **98** (67 Fusion templates, 30 simple, 1 OFX; 2026-11-01) |
 | Fairlight EQ / dynamics / inserts | none (ffmpeg only) | **template route**: XML presets written by script, config presets applied by API |
 | Color beyond LUT/CDL | groups, versions | **+ DRX grade templates**, CDL on GUI-made window nodes, node keys, primaries/window fields, tracker |
 | Subtitles | burn with ffmpeg only | **native**: SRT on a subtitle track + Resolve burn-in |
+| Ready-made effect presets (verified, re-applied from file) | 0 | **18** (`assets/fx`, `R.effects`) + 12 title / 6 effect templates checked on stills (2026-11-01) |
+| Keyframe easing by script | linear only | **8 named eases** (linear, smooth, inout, in, out, snap, back, hold) + any CSS cubic-bezier (2026-11-01) |
+| Motion tracking | none | **OpenCV track.py + R.track**: face/box, 91/91 frames on handheld footage (2026-11-01) |
 | Page coverage (rough: share of the page's everyday features an agent can reach) | Media 70, Edit 60, Deliver 60, Color 30, Fairlight 20, Fusion 10-15 | Media 90, Cut 85, Edit 90, Fusion 90, Color 70, Fairlight 75, Deliver 90 |
 
 ## Media
@@ -36,12 +39,12 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Timelines (size, fps, tracks, names, lock/enable) | ✓ | | | `R.timeline`, `AddTrack`... Audio track "enable" doesn't mute renders |
 | Exact placement, selects, silence cuts, reframing | ✓ | | | `R.place`, `R.keep`, `R.frame` |
 | Transform / crop / opacity / flip / composite / retime quality | ✓ | | Inspector | 32 properties |
-| Keyframed motion | ✓ (Fusion) | | Inspector keyframes | `R.motion`, `R.zoom`, `R.fx(..., {{f, v}})` |
-| Effects on clips | ✓ (Fusion, `R.fx`) | .setting | Effects Library drag ✓ | Drag-applied OFX are invisible to the API |
-| Transitions | ✓ 49 | Fusion transition templates | | Center alignment needs handles |
-| Titles | ✓ `R.title` | ✓ title templates | | Never `Insert*IntoTimeline` (ripples 150 frames) |
+| Keyframed motion, easing | ✓ (Fusion) | | Inspector keyframes | `R.key(tool, input, {{f, v}..., ease = "snap"})` (linear/in/out/inout/smooth/snap/back/hold or a cubic-bezier), `R.motion`, `R.zoom` |
+| Effects on clips | ✓ (Fusion, `R.fx`) | ✓ 18 skill presets (`R.effects`) + your own (`R.save_fx`) | Effects Library drag ✓ | `effects.md`. One effect over several clips: compound clip + `R.fx`. Drag-applied OFX are invisible to the API |
+| Transitions | ✓ **98** (67 Fusion incl. whip pans, crash zoom, glitch, flashes; 30 simple; 1 OFX) | Fusion transition templates | | `effects.md` §3. Center alignment needs handles |
+| Titles, text animation | ✓ `R.title` anim pop/fade/type/words/rise/slide, Follower per character, counters | ✓ ~120 title templates (lower thirds...) | | Never `Insert*IntoTimeline` (ripples 150 frames) |
 | Generators, particles, backgrounds | ✓ carrier + `R.fx(carrier, R.templates.."Edit/Generators/Starfield.setting")` (Starfield, Snow verified) | 417 templates | | |
-| Speed, ramps | ✓ constant; ✓ ramps via Fusion TimeStretcher (frame-exact) | | retime curve | Don't use TimeSpeed |
+| Speed, ramps, freeze, reverse | ✓ constant; ✓ ramps/freeze/reverse via Fusion TimeStretcher (frame-exact) | | retime curve | Don't use TimeSpeed |
 | Stabilize | ✓ | | | |
 | Compound / Fusion clip / takes / duplicate | ✓ | | | |
 | Subtitles (place, burn-in) | ✓ | SRT | styling ✓ | Append SRT FIRST on an empty timeline |
@@ -53,11 +56,11 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 |---|---|---|---|---|
 | Node graph build/connect, any of about 500 tools | ✓ | | | `comp:AddTool`, `FindMainInput/Output` |
 | ResolveFX (53) | ✓ | | | Image input is `Source` |
-| Keyframes, splines, expressions | ✓ | | | `R.key`, `SetExpression` |
+| Keyframes, easing, splines, expressions | ✓ | | | `R.key` (+ ease), `SetExpression`. Keys added live to a ResolveFX don't render: `R.fx` re-pastes them |
 | Macros/templates (.setting) | ✓ paste (Fusion page open) | ✓ 417 built-in + your own via `SaveSettings` | | `R.fx(item, path)` |
 | Text+ | ✓ | | | Fonts must be visible to Fusion |
 | Particles, 3D, masks, keyers | ✓ tools by script; particles via templates (Snow verified) | 417 templates | | |
-| Fusion tracking (Tracker/PlanarTracker) | tools add, but TrackForward can't be triggered by script | | Fusion Inspector buttons | Or track outside Resolve and write keyframes |
+| Motion tracking | ✓ via OpenCV: `track.py` (box or face) + `R.track` (follow, face blur, stabilize on a point) | | Fusion Inspector buttons | Fusion's own Tracker can't be triggered by script |
 | OGraf HTML titles | ✗ on Linux | | | macOS/Windows only |
 
 ## Color

@@ -27,15 +27,18 @@ Frames are relative to the timeline start (0 = first frame).
 | `R.items(tl, kind, track)`, `R.dump(tl)` | List items; a readable map of every track |
 | `R.tc(tl, rel)`, `R.fps(tl)` | Relative frame to timecode; integer fps |
 | `R.has_font(family)`, `R.default_font()` | Is the family visible to Fusion (rescans ~/.local/share/fonts); first available of Open Sans / Inter / DejaVu Sans / Helvetica Neue / Arial |
-| `R.title(tl, {text, at, len, track=2, font, style, size, color, center, anim, tracking, outline})` | Title on a carrier clip with Text+. `anim` = "pop" (default) / "fade" / "none". Returns `item, comp, textTool` |
+| `R.title(tl, {text, at, len, track=2, font, style, size, color, center, anim, speed, tracking, outline})` | Title on a carrier clip with Text+. `anim` = "pop" (default) / "fade" / "type" (typewriter) / "words" (word by word) / "rise" (letters rise in turn) / "slide" / "none"; `speed` = frames per line/word/letter. Returns `item, comp, textTool` |
 | `R.template(tl, comp_path, {at, len, track, text})` | Reuse a saved `.comp` title, retargeting its Text+ |
-| **`R.fx(item, id, params)`** | **Apply any effect**: ResolveFX (`ofx.com.blackmagicdesign.resolvefx.<Name>`), any Fusion tool ID, or a `.setting` macro/template path (`R.templates .. "Edit/Effects/CCTV.setting"`). Chains; params may be keyframes `{{f, v}, ...}`; asserts param IDs exist. Returns `tool, comp`. `pages/fusion.md` |
+| **`R.fx(item, id, params)`** | **Apply any effect**: ResolveFX (`ofx.com.blackmagicdesign.resolvefx.<Name>`), any Fusion tool ID, or a `.setting` file: a preset (`R.effects .. "glitch.setting"`), a template (`R.templates .. "Edit/Effects/CCTV.setting"`) or a chain saved by `R.save_fx`. Chains; params may be keyframes `{{f, v}, ..., ease = "out"}` (keyed ResolveFX are re-pasted so they animate); asserts param IDs exist. Returns `tool, comp`. `pages/fusion.md`, `effects.md` |
 | `R.inputs(tool)` | A tool's own params with values (display names for macro `InputN`), to find IDs for R.fx |
 | `R.templates` | `~/resolve-bridge/templates/`: Resolve's 417 built-in Fusion templates as .setting files (install.sh) |
+| `R.effects` | `~/resolve-bridge/fx/` = the skill's `assets/fx`: 18 verified effect presets (zoom-punch, glitch, vhs, film-look, light-leak, lower-third...) and `build.lua` (their builders, `FX.b[name](item)`). `effects.md` |
+| `R.save_fx(tools, path)` | Save tools (a chain, with keys and modifiers) as a .setting that `R.fx(item, path)` re-applies to any clip. `R.writefile(path, s)` writes any file |
 | `R.readfile(path)` | Read a file inside the console (no io there): ffi + libc |
 | `R.motion(item, {punch={from,to,frames}, push={from,to}, shake={amp,frames}, blur})` | Keyframed Fusion Transform on a clip. Named keys, Transform Size units (1 = 100%), frames from the item's first frame: `R.motion(it, {punch = {from = 1.3, to = 1.0, frames = 8}})` zooms 130% to 100% over 8 frames; `push = {from = 1, to = 1.08}` over the whole clip; `shake = {amp = 0.015, frames = 10}` (fraction of frame). Returns the Transform tool |
 | `R.zoom(item, {target={x,y} top-left fractions, scale, at, hold, ease})` | Demo zoom onto a point and back (pixel-verified maths) |
-| `R.key(tool, input, {{frame, value}, ...})` | Keyframe any Fusion input (BezierSpline, or XYPath for Center) |
+| `R.key(tool, input, {{frame, value}, ..., ease = "out"})` | Keyframe any Fusion input (BezierSpline; XYPath for points). `ease` (or a 4th arg): `linear` (default), `smooth`, `inout`, `in`, `out`, `snap`, `back` (overshoot), `hold` (steps) or a CSS cubic-bezier `{x1, y1, x2, y2}`; `R.EASE` lists them. Frames from the item's first frame |
+| `R.track(item, tool, input, file, {offset, size, stabilize, on})` | Key a point input to a `track.py` track (OpenCV): follow an object, `size` = also key a mask's Width/Height (face blur), `stabilize` = hold the object still, `on` = the carrier holding the tool when it isn't the tracked clip. `effects.md` §6 |
 | `R.lut(items, "agent/moody.cube")` | LUT on node 1 (runs BEFORE later nodes). The path is relative to the master LUT folder. Custom curves: `prep.py lut curve --points ...` |
 | `R.cdl(item, {slope={r,g,b}, offset, power, sat})` | ASC CDL on node 1 |
 | `R.group(name, items, lut)` | Color group with a pre-clip LUT: one look for many clips |

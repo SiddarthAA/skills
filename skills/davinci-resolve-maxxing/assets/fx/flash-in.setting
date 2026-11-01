@@ -1,0 +1,34 @@
+{
+	Tools = ordered() {
+		BrightnessContrast1 = BrightnessContrast {
+			Inputs = {
+				Saturation = Input {
+					Source = "Value",
+					SourceOp = "BrightnessContrast1Saturation"
+				},
+				Gain = Input {
+					Source = "Value",
+					SourceOp = "BrightnessContrast1Gain"
+				}
+			}
+		},
+		BrightnessContrast1Gain = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 5, RH = { 0, 5 } },
+				[8] = { 1, LH = { 4.64, 1 } }
+			},
+			SplineColor = { Blue = 233, Green = 144, Red = 104 }
+		},
+		BrightnessContrast1Saturation = BezierSpline {
+			CtrlWZoom = false,
+			NameSet = true,
+			KeyFrames = {
+				[0] = { 0, RH = { 0, 0 } },
+				[8] = { 1, LH = { 4.64, 1 } }
+			},
+			SplineColor = { Blue = 230, Green = 245, Red = 216 }
+		}
+	}
+}

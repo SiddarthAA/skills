@@ -3,6 +3,16 @@
 Read this before your first script. **[L]** = verified in our lab (free 21.1.1, Linux). **[R]** = reported by the
 samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested here.
 
+## Silent effect and timing traps (added 2026-11-01)
+| Trap | What happens | Do this instead |
+|---|---|---|
+| A new project's frame rate is **24 fps** until its first timeline; `R.timeline{fps = 30}` only works before that | 30 fps clips placed with `from`/`len` in source frames land shorter, leaving gaps that render BLACK (a "black transition") [L] | Pass `fps` on the project's FIRST `R.timeline` call; check `R.fps(tl)` |
+| Keys added live to a ResolveFX param (`R.key(ofxTool, "blend", ...)`) | Reads back animated, renders the static value [L] | Key it through `R.fx(item, id, {p = {{f, v}...}})` (re-pastes), or `R.save_fx` + `R.fx(file)` |
+| Edit-page zoom on a clip with a Fusion DropShadow | The shadow is drawn on the full frame BEFORE the Edit-page scale, so none shows around the PiP [L] | Scale inside Fusion (`R.fx(it, "Transform", {Size = 0.35})`) then DropShadow |
+| `Trails` (echo) | Nothing in random-access stills (it needs sequential frames) [L] | Check a real render, or fake echo with several offset Merges |
+| Built-in effect templates **Comic Book** (renders black) and **Digital Glitch** (R.still fails) | [L] | Hologram Glitch, the `glitch` preset, or the Glitch transition |
+| A keyframed `Center` of a pasted preset (e.g. the lower third's text) | `SetInput("Center", ...)` is ignored: the XYPath drives it [L] | Move the whole overlay with the carrier's `Pan`/`Tilt`, or re-key it |
+
 ## Things that crash or freeze Resolve
 
 | Never do this | What happens | Do this instead |

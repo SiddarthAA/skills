@@ -1,0 +1,10 @@
+{
+	Tools = ordered() {
+		BrightnessContrast1 = BrightnessContrast {
+			Inputs = {
+				Saturation = Input { Value = 0 },
+				Contrast = Input { Value = 0.2 }
+			}
+		}
+	}
+}

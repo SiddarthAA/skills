@@ -16,9 +16,33 @@ Coordinates: 1854x1048 main window, default layout (screenshot first, `reference
 | Power window shape/position/softness | GUI fields | Window palette transform fields [L], then grade inside with SetCDL on that node [L]. **Pan/Tilt: 50/50 = centre, about 82 px per unit at 1080p, Pan up = right, Tilt up = up**: for a subject at frame fractions (x, y from top-left), Pan ≈ 50 + (x - 0.5)·23.4, Tilt ≈ 50 - (y - 0.5)·13.2. Soft 1: default 2.07; 2-4 is a normal feather, 8 shrinks the core to a dot. Off-frame windows fail silently (no change) |
 | Track a window | GUI | Select the window node, seek to the clip's FIRST frame (it tracks from the playhead), then Tracker palette track forward (823,751) [L]. 60 frames take about 6 s; the tracked window moves in stills and renders. Prove it by stills with `SetNodeEnabled` on/off at the first and last frames. Leave the "Cloud Tracker" dropdown alone |
 | Qualifier (HSL key) | GUI fields + API grade | New node (Alt+S), Qualifier palette (928,692), type the ranges with `gui field`, then `SetCDL` on that node: verified highlights-only darkening (bright pixels 236 → 96, darks 40.8 → 40.9); `GetToolsInNode` then lists "HSL Qualifier" [L] |
-| Curves by hand, color warper, magic mask | GUI / template / Studio | Curves and warper are GUI drags: do them once, then DRX (global curves: `prep.py lut curve`). Magic Mask = Studio (`CreateMagicMask` returns false) [L] |
+| Curves, per-range wheels, windows by script | API (Fusion) | `R.curve`, `ColorCorrector` ranges, masked corrections: section below [L] |
+| Curves by hand, color warper, magic mask | GUI / template / Studio | Curves and warper are GUI drags: do them once, then DRX (global curves: `prep.py lut curve` or `R.curve`). Magic Mask = Studio (`CreateMagicMask` returns false) [L] |
 | Compare / review | API | `R.still(tl, f, png)`; average colour: `convert x.png -resize 1x1! -format '%[pixel:p{0,0}]' info:` |
 | Node readout | API | `g:GetNumNodes()`, `g:GetToolsInNode(i)` e.g. {Primary Balance, Saturation Hue & Lum Mix} or {Power Windows}, `g:GetNodeLabel(i)`, `g:GetLUT(i)` [L] |
+
+## Grade by script in Fusion: curves, ranges, windows (no GUI) [L]
+The Color page has no API for curves, wheels per range, qualifiers or windows, but the clip's Fusion comp does, and it renders in the timeline
+and Deliver like a Color-page grade (Fusion runs BEFORE the Color page, so a Color-page LUT/CDL still sits on top). Verified 2026-11-01 by pixel means:
+```lua
+R.curve(item, {{0, 0.05}, {0.25, 0.18}, {0.75, 0.85}, {1, 0.97}})          -- S-curve, soft blacks/whites (contrast std 0.357 -> 0.374)
+R.curve(item, {{0, 0}, {1, 0.5}}, "r")                                   -- one channel: red mean 0.541 -> 0.270 exactly, G/B untouched
+-- lift / gamma / gain / contrast / saturation, master or per range (Shadows / Midtones / Highlights) and per channel:
+R.fx(item, "ColorCorrector", {MasterRGBContrast = 1.1, MasterRGBGamma = 1.05, Saturation1 = 1.15})
+R.fx(item, "ColorCorrector", {ShadowsBlueGain = 1.25, ShadowsRedGain = 0.85, HighlightsRedGain = 1.12, HighlightsBlueGain = 0.85})  -- teal/orange
+--   measured: shadows R 0.051 -> 0.045, B 0.067 -> 0.079; highlights B 0.217 -> 0.190. Input names: <Master|Shadows|Midtones|Highlights><RGB|Red|Green|Blue><Gain|Lift|Gamma|Contrast|Brightness>
+-- power window: any correction inside a soft mask (relight a face, darken a sky); track it with R.track (effects.md §6)
+local cr = R.fx(item, "ColorCorrector", {MasterRGBGain = 1.35}); local e = item:GetFusionCompByIndex(1):AddTool("EllipseMask")
+e:SetInput("Center", {0.25, 0.45}); e:SetInput("Width", 0.3); e:SetInput("Height", 0.45); e:SetInput("SoftEdge", 0.1); cr.EffectMask = e.Mask
+--   measured: inside 0.558 -> 0.740, outside unchanged
+-- global saturation: HueCurves with every Sat key set to the same value (keep the table's handles): x0.2 -> sat 0.095 -> 0.021
+local hc = R.fx(item, "HueCurves"); local sp = hc.Sat:GetConnectedOutput():GetTool(); local k = sp:GetKeyFrames()
+for _, v in pairs(k) do v[1] = 0.2 end; sp:SetKeyFrames(k, true)
+```
+- **Hue-selective changes (HueCurves with different values per hue) do nothing when set by script** (bit-identical output) [L]. Hue qualifiers:
+  Color page GUI route below, or a keyer (Fusion `ChromaKeyer`/`DeltaKeyer`, untested) as the correction's EffectMask.
+- Save a grade built this way as a preset (`R.save_fx({cc, cr}, path)`) and re-apply it to every clip of a scene with `R.fx(item, path)`.
+- Whole-video looks are still best as a LUT (`R.lut`/`R.group`): one node, cheap, and it follows the project's colour management.
 
 ## API [L]
 ```lua

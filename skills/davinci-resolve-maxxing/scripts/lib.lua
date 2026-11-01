@@ -450,6 +450,19 @@ function R.save_fx(tools, path)
   return R.writefile(path, bmd.writestring(tools[1]:Comp():CopySettings(tools)))
 end
 
+-- Curves by script (Fusion ColorCurves: each channel is a LUTBezier whose "frames" are inputs 0..1 and values outputs).
+-- R.curve(item, {{0, 0.05}, {0.25, 0.18}, {0.75, 0.85}, {1, 0.97}})        S-curve on R, G and B
+-- R.curve(item, {{0, 0}, {1, 0.9}}, "b")                                   one channel ("r", "g", "b" or any mix)
+-- Returns the ColorCurves tool (chained like any R.fx effect). Verified: {{0,0},{1,0.5}} on "r" halves the red mean exactly.
+function R.curve(item, pts, ch)
+  local cc, k = R.fx(item, "ColorCurves"), {}
+  for _, p in ipairs(pts) do k[p[1]] = {p[2]} end
+  for c in (ch or "rgb"):gmatch(".") do
+    cc[({r = "Red", g = "Green", b = "Blue"})[c]]:GetConnectedOutput():GetTool():SetKeyFrames(k, true)
+  end
+  return cc
+end
+
 -- A tool's own settable inputs with current values (skips images, masks and the common Settings page): param IDs for R.fx.
 function R.inputs(tool)
   local o = {}

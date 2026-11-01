@@ -39,6 +39,7 @@ Frames are relative to the timeline start (0 = first frame).
 | `R.zoom(item, {target={x,y} top-left fractions, scale, at, hold, ease})` | Demo zoom onto a point and back (pixel-verified maths) |
 | `R.key(tool, input, {{frame, value}, ..., ease = "out"})` | Keyframe any Fusion input (BezierSpline; XYPath for points). `ease` (or a 4th arg): `linear` (default), `smooth`, `inout`, `in`, `out`, `snap`, `back` (overshoot), `hold` (steps) or a CSS cubic-bezier `{x1, y1, x2, y2}`; `R.EASE` lists them. Frames from the item's first frame |
 | `R.track(item, tool, input, file, {offset, size, stabilize, on})` | Key a point input to a `track.py` track (OpenCV): follow an object, `size` = also key a mask's Width/Height (face blur), `stabilize` = hold the object still, `on` = the carrier holding the tool when it isn't the tracked clip. `effects.md` §6 |
+| `R.curve(item, {{in, out}, ...}, "rgb")` | Curves by script (Fusion ColorCurves, LUTBezier keys): S-curves, per-channel. Chains like `R.fx`. Per-range wheels: `R.fx(item, "ColorCorrector", {ShadowsBlueGain = 1.2, ...})` (`pages/color.md`) |
 | `R.lut(items, "agent/moody.cube")` | LUT on node 1 (runs BEFORE later nodes). The path is relative to the master LUT folder. Custom curves: `prep.py lut curve --points ...` |
 | `R.cdl(item, {slope={r,g,b}, offset, power, sat})` | ASC CDL on node 1 |
 | `R.group(name, items, lut)` | Color group with a pre-clip LUT: one look for many clips |

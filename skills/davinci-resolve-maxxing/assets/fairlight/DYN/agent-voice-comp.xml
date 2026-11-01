@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- agent: dialogue compressor. -20 dB threshold, 4:1, 5 ms attack -->
+<FXPreset type="DYN">
+	<Setting module="MT_TRACK" parameter="DYN_GAIN" value="0" />
+	<Setting module="MT_TRACK" parameter="SIDECHAIN_MODE" value="0" />
+	<Setting module="MT_TRACK" parameter="COMP_IN" value="1" />
+	<Setting module="MT_TRACK" parameter="COMP_RATIO" value="58" />
+	<Setting module="MT_TRACK" parameter="COMP_THRES" value="-200" />
+	<Setting module="MT_TRACK" parameter="COMP_KNEE" value="0" />
+	<Setting module="MT_TRACK" parameter="COMP_ATT" value="40" />
+	<Setting module="MT_TRACK" parameter="COMP_HOLD" value="0" />
+	<Setting module="MT_TRACK" parameter="COMP_REL" value="20" />
+	<Setting module="MT_TRACK" parameter="GATE_IN" value="0" />
+	<Setting module="MT_TRACK" parameter="GATE_RANGE" value="30" />
+	<Setting module="MT_TRACK" parameter="GATE_THRES" value="-350" />
+	<Setting module="MT_TRACK" parameter="COMP_MIX" value="0" />
+	<Setting module="MT_TRACK" parameter="GATE_ATT" value="20" />
+	<Setting module="MT_TRACK" parameter="GATE_HOLD" value="0" />
+	<Setting module="MT_TRACK" parameter="GATE_REL" value="20" />
+	<Setting module="MT_TRACK" parameter="GATE_MODE" value="0" />
+	<Setting module="MT_TRACK" parameter="LIM_IN" value="0" />
+	<Setting module="MT_TRACK" parameter="LIM_THRES" value="-210" />
+	<Setting module="MT_TRACK" parameter="LIM_ATT" value="20" />
+	<Setting module="MT_TRACK" parameter="LIM_HOLD" value="0" />
+	<Setting module="MT_TRACK" parameter="LIM_REL" value="20" />
+	<Setting module="MT_TRACK" parameter="EXP_RATIO" value="0" />
+	<Setting module="MT_TRACK" parameter="DYN_TYPE" value="0" />
+	<Setting module="MT_TRACK" parameter="DYN_HPF_FREQ" value="0" />
+	<Setting module="MT_TRACK" parameter="DYN_LINK_IN" value="1" />
+	<Setting module="MT_TRACK" parameter="DYN_IN" value="1" />
+</FXPreset>

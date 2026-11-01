@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Run Lua inside DaVinci Resolve through bridge.lua; prints print() output and the return value.
+# Usage: rv 'return R.dump()'  |  rv < script.lua  |  RV_TIMEOUT=900 rv < render.lua
+dir=${RESOLVE_BRIDGE_DIR:-$HOME/resolve-bridge}
+id=$(date +%s%N)
+code=${1:-$(cat)}
+printf -- '-- id:%s\n%s\n' "$id" "$code" > "$dir/req.tmp" && mv "$dir/req.tmp" "$dir/req.lua"
+end=$((SECONDS + ${RV_TIMEOUT:-30}))
+while ((SECONDS < end)); do
+  if [[ $(head -1 "$dir/res.txt" 2>/dev/null) == "-- id:$id" ]]; then
+    tail -n +2 "$dir/res.txt"; echo
+    # an open Resolve dialog (e.g. the Studio upsell) makes later calls fail silently (CreateEmptyTimeline -> nil)
+    XDO=$(command -v xdotool || command -v xdo) && for w in $(DISPLAY=${DISPLAY:-:1} $XDO search --onlyvisible --name '^(Message|Input|Warning|Error)$' 2>/dev/null); do
+      echo "rv: a Resolve dialog is open ($(DISPLAY=${DISPLAY:-:1} $XDO getwindowname "$w"), window $w). Look: GUI_WIN=$w gui shot /tmp/d.png; close: GUI_WIN=$w gui key Escape" >&2
+    done
+    exit 0
+  fi
+  sleep 0.1
+done
+echo "rv: no reply in ${RV_TIMEOUT:-30}s. Bridge not running, Resolve busy, or a modal dialog is open (run: resolve-up)." >&2
+exit 1

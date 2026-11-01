@@ -73,6 +73,6 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
 | `references/pages/*.md`, `references/project-and-prefs.md` | Per-page how-to with verified calls, templates and GUI coordinates |
 | `references/effects-catalog.tsv` | The 53 ResolveFX on free: ID, category, image input, params with defaults |
 | `references/api.md`, `gotchas.md`, `gui.md` | R helpers; everything that crashes, blocks or fails silently; GUI driving |
-| `references/recipes.md`, `craft-and-specs.md`, `brand-kits.md`, `mac.md` | Genre recipes; platform specs and craft; brand kits (Failproof AI first); macOS |
+| `references/recipes.md`, `craft-and-specs.md`, `mac.md` | Genre recipes; platform specs and craft; macOS |
 
 Tested on DaVinci Resolve **21.1.1 free, Ubuntu 24.04, X11**. Studio differences: external scripting works there (the bridge isn't needed), plus H.264 on Linux, the AI tools and DCTL without a watermark. The `R` helpers still apply.

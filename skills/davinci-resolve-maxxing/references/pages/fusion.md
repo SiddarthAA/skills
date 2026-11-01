@@ -10,7 +10,7 @@ R.fx(item, "FilmGrain", {MasterStrength = 0.15})                          -- any
 R.fx(item, R.templates .. "Edit/Effects/CCTV.setting")  -- any macro/template .setting: built-in (unpacked by install.sh), Reactor, your own
 local carrier = R.place(tl, R.carrier(tl), {track = 2, at = 120, len = 60, media = "video"})[1]  -- transparent clip for overlays
 local _, comp = R.fx(carrier, R.templates .. "Edit/Titles/Headline.setting")       -- title/generator templates go on a carrier
-comp:FindToolByID("TextPlus"):SetInput("StyledText", "hacktober")
+comp:FindToolByID("TextPlus"):SetInput("StyledText", "Title")
 R.fx(item, "Transform", {Size = {{0, 1.2}, {8, 1.0}}})                     -- {{frame, value}, ...} = keyframes
 print(R.inputs(tool))   -- the tool's own params with current values (skips the common Settings page)
 ```

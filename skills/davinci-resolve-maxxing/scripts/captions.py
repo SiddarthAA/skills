@@ -2,7 +2,7 @@
 """Captions on the EDITED timeline's clock (transcripts are on the source clock; jump cuts move every word).
 
   captions.py WORDS.json --keep KEEP.json [--at 0] [--fps 30] --out captions.srt
-              [--style lines|pop] [--max-chars 24] [--lines 2] [--words 3] [--fix "Cordova=Quad AI" ...] [--json pop.json]
+              [--style lines|pop] [--max-chars 24] [--lines 2] [--words 3] [--fix "Jon=John" ...] [--json pop.json]
 
   WORDS.json  transcribe.py output (start/end seconds on the source clock)
   KEEP.json   analyze.py silence output (uses keep_f), or a JSON list of [in, out] source frames (out exclusive),

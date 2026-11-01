@@ -12,7 +12,7 @@ Writes next to --out (default: the input's folder):
   <stem>.srt          sentence captions, <= max-chars per line, <= 2 lines -> finish.py --subs
   <stem>.pop.srt      groups of N words -> punchy short-form captions
 Models (first use downloads into ~/.cache/huggingface): tiny.en 75 MB, base.en 145 MB, small.en 485 MB (default),
-medium.en 1.5 GB. Noisy rooms: pass names/jargon with --hotwords "Quad AI, Failproof" (initial prompts made whisper loop).
+medium.en 1.5 GB. Noisy rooms: pass names/jargon with --hotwords "Names, Product" (initial prompts made whisper loop).
 Always proof-read names; fix leftovers with captions.py --fix OLD=NEW.
 """
 import argparse

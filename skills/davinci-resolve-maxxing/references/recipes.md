@@ -32,7 +32,7 @@ Write `$W/plan.md` and show it to the user before building:
 - Deliverables: platform(s), aspect, length, fps (from craft-and-specs §1).
 - Structure with timings: hook / build / payoff / CTA, or the reference's structure.
 - Shot list: `#, timeline in-out (frames), source file @ timecode, framing (crop cx), motion, text, sfx`.
-- Look (LUT name), fonts and colours (brand kit), music source and its licence.
+- Look (LUT name), fonts and colours, music source and its licence.
 - Open questions.
 Wait for "go" or edits.
 
@@ -108,7 +108,7 @@ for _, s in ipairs(SHOTS) do
 end
 R.group("hype look", items, "agent/moody.cube")
 R.title(tl, {text = "MILLION", at = 70, len = 30, font = "Anton", style = "Regular", size = 0.16, center = {0.5, 0.33}})
-R.title(tl, {text = "hacktober hack", at = 300, len = 29, font = "ArchitypeStedelijkW00", style = "Regular", size = 0.1, track = 3})
+R.title(tl, {text = "event name", at = 300, len = 29, size = 0.1, track = 3})
 R.import({W .. "song.wav", W .. "whoosh.wav"}, "audio")
 R.place(tl, "song.wav", {at = 0, media = "audio", track = 1})
 for _, cut in ipairs({330, 361, 389}) do R.place(tl, "whoosh.wav", {at = cut - 5, media = "audio", track = 2}) end
@@ -146,7 +146,7 @@ title, burned captions, -14.0 LUFS).
    loses a speaker who moves).
 2. **External mic.** `R.sync(R.find("cam.mov"), R.find("mic.wav"))`. The synced clip carries 2 audio tracks: A1 = camera audio, A2 = mic. For mic-only
    sound mute the A1 items (`AudioVolume = -100`). "Audio Offset" on the camera clip = frames, mic time = camera time + offset.
-3. **Transcript.** `$S/transcribe.py $W/media/cam.mov --hotwords "Quad AI, Failproof, <names>" --out $W/tx` (run it directly: it is a uv script).
+3. **Transcript.** `$S/transcribe.py $W/media/cam.mov --hotwords "<names>, <product>" --out $W/tx` (run it directly: it is a uv script).
    The camera track keeps the camera clock; if you transcribe the cleaner mic file instead, pass `captions.py --shift -<AudioOffset/fps>` in step 7.
    Proof-read names. Uncertain words go in the plan's open questions.
 4. **Silence cuts.** `analyze.py silence $W/media/cam.mov --min 0.35 --pad 0.1 > $W/keep.json` (long-form: `--min 0.7 --pad 0.25`). RMS with an auto noise floor; it warns if it finds nothing. Check `gaps_cut` > 0.
@@ -168,7 +168,7 @@ for i, it in ipairs(items) do R.frame(it, xs[i], i % 2 == 0 and 1.15 or 1.0) end
    Re-check with `R.stills` at each cut's middle. The speaker's face should sit near x 540 and inside the safe zone.
 7. **Captions on the timeline clock** (jump cuts move every word):
 ```bash
-$S/captions.py $W/tx/cam.words.json --keep $W/keep.json --out $W/captions.srt --max-chars 24 --fix "Cordova=Quad AI"
+$S/captions.py $W/tx/cam.words.json --keep $W/keep.json --out $W/captions.srt --max-chars 24 --fix "Jon=John"
 $S/finish.py master.mov --to reels --subs $W/captions.srt --size 72 --name 20261029_talk_piece --version v01
 # short-form word-pop instead: --style pop --words 2 --json $W/pop.json, then one R.title per card (at, len, text)
 ```
@@ -192,4 +192,4 @@ R.title(tl, {text = "Asha Rao", at = 95, len = 120, font = "Open Sans", style = 
 R.title(tl, {text = "Founder, Acme", at = 100, len = 115, font = "Open Sans", style = "Regular", size = 0.035, center = {0.25, 0.16}, anim = "fade", track = 4})
 ```
 4. Cutdowns: make the 16:9 master first, then build 9:16 by re-placing the same shot data into `R.timeline("recap 9x16", {w=1080, h=1920})` with re-prepped vertical crops.
-5. End card: brand kit (brand-kits.md): a background clip plus logo plus CTA via `R.title`.
+5. End card: a background clip plus logo plus CTA via `R.title` (fonts, colours and logo from the plan).

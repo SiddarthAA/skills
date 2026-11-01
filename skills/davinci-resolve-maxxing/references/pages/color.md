@@ -59,4 +59,4 @@ tl:GrabAllStills(1)               -- one still per clip
 1. `resolve:OpenPage("color")` (again after every `R.still`, which leaves you on the Edit page). Make a clip current (thumbnail click). Build nodes with keys
    (Alt+S, Alt+C), set fields (`gui field`), and add a window, qualifier or curve.
 2. `rv 'local st = R.tl():GrabStill(); R.project():GetGallery():GetCurrentStillAlbum():ExportStills({st}, "<dir>", "mylook", "drx")'`
-3. Ship `mylook_<still number>.drx` with the brand kit; apply with `ApplyGradeFromDRX(path, 0)` one clip per call after `R.save()`, on any clip, any project. Verify with `R.still`.
+3. Keep `mylook_<still number>.drx` with the project's assets; apply with `ApplyGradeFromDRX(path, 0)` one clip per call after `R.save()`, on any clip, any project. Verify with `R.still`.

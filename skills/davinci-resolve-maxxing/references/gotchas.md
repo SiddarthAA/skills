@@ -65,7 +65,7 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 |---|---|
 | ffmpeg `silencedetect` compares **peaks**: in a noisy room, -40 dB (and even -35) finds no pauses and the whole clip comes back as one range [L] | `analyze.py silence` uses RMS with an auto noise floor and warns when it finds nothing |
 | Transcripts are on the **source** clock; after jump cuts every caption is wrong [L] | `captions.py words.json --keep keep.json` remaps onto the timeline |
-| Whisper mangles names in noisy rooms ("Cordova" for Quad AI). `initial_prompt` made it loop [L] | `transcribe.py --hotwords "..."`, then `captions.py --fix OLD=NEW`. Put doubtful words in the plan's questions |
+| Whisper mangles names in noisy rooms (product and person names come out as similar-sounding words). `initial_prompt` made it loop [L] | `transcribe.py --hotwords "..."`, then `captions.py --fix OLD=NEW`. Put doubtful words in the plan's questions |
 | **libass (finish.py captions) uses fontconfig, not Fusion's list.** A family only Fusion has (Resolve bundles Open Sans) silently falls back [L] | `finish.py` picks an installed family via fc-list; `--font` to choose |
 | A fixed vertical crop (`prep.py --cx`) loses a speaker who moves; guessing Pan units put 3 of 8 cuts off-frame [L] | Keep 16:9, `R.timeline{crop = true}`, `R.frame(item, x, zoom)` per cut, positions read off `sheet.py --ranges` |
 | `R.dump()` in a project with no timeline | Returns a message (fixed); `R.tl()` is nil until `R.timeline` or `R.open` |

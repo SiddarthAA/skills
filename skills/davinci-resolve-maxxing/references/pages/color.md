@@ -40,7 +40,7 @@ local hc = R.fx(item, "HueCurves"); local sp = hc.Sat:GetConnectedOutput():GetTo
 for _, v in pairs(k) do v[1] = 0.2 end; sp:SetKeyFrames(k, true)
 ```
 - **Hue-selective changes (HueCurves with different values per hue) do nothing when set by script** (bit-identical output) [L]. Hue qualifiers:
-  Color page GUI route below, or a keyer (Fusion `ChromaKeyer`/`DeltaKeyer`, untested) as the correction's EffectMask.
+  Color page GUI route below, or a keyer (Fusion `ChromaKeyer`/`DeltaKeyer`; DeltaKeyer verified for green screen, `effects.md` §7) as the correction's EffectMask.
 - Save a grade built this way as a preset (`R.save_fx({cc, cr}, path)`) and re-apply it to every clip of a scene with `R.fx(item, path)`.
 - Whole-video looks are still best as a LUT (`R.lut`/`R.group`): one node, cheap, and it follows the project's colour management.
 

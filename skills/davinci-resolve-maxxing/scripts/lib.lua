@@ -305,7 +305,12 @@ function R.title(tl, o)
   local font, style = o.font, o.style
   if not font then font, style = R.default_font() end
   style = style or "Bold"
-  assert(R.has_font(font), "Fusion cannot see font '" .. font .. "' (install it, then R.has_font)")
+  if not R.has_font(font) then  -- static Google fonts register per optical size: "Inter" is "Inter 18pt"
+    local m = {}
+    for f in pairs(resolve:Fusion().FontManager:GetFontList()) do if f:lower():find(font:lower(), 1, true) then m[#m + 1] = f end end
+    error("Fusion cannot see font '" .. font .. "'" .. (#m > 0 and "; did you mean: " .. table.concat(m, ", ")
+      or " (install it into ~/.local/share/fonts, then R.has_font)"), 2)
+  end
   local item = R.place(tl, R.carrier(tl), {track = o.track or 2, at = o.at, len = o.len, media = "video"})[1]
   local comp = item:AddFusionComp()  -- never comp:Lock(): writes inside Lock do not render
   local txt, mrg = comp:AddTool("TextPlus"), comp:AddTool("Merge")
@@ -331,9 +336,9 @@ function R.title(tl, o)
     key(mrg, "Blend", {{0, 0}, {8, 1}})
   elseif a == "type" then  -- typewriter: Text+ Write On End, o.speed frames for the whole line (default 1 char/frame)
     key(txt, "End", {{0, 0}, {o.speed or math.max(6, n), 1}})
-  elseif a == "words" then  -- word by word, o.speed frames per word (Write On End jumps to each word's end and holds)
-    local pts, i = {ease = "hold"}, 0
-    for e in o.text:gmatch("%S+()") do pts[#pts + 1] = {i * (o.speed or 6), (e - 1) / n}; i = i + 1 end
+  elseif a == "words" then  -- word by word (Write On End jumps to each word's end and holds): on o.word_at frames
+    local pts, i = {ease = "hold"}, 0  -- (spoken timing from captions.py --json), else o.speed frames apart
+    for e in o.text:gmatch("%S+()") do pts[#pts + 1] = {o.word_at and o.word_at[i + 1] or i * (o.speed or 6), (e - 1) / n}; i = i + 1 end
     key(txt, "End", pts)
   elseif a == "rise" then  -- letters rise and fade in one after another (Follower modifier, o.speed frames apart)
     txt:AddModifier("StyledText", "StyledTextFollower")

@@ -105,7 +105,7 @@ R.title(tl, {text = "LAUNCH DAY", at = 30, len = 60, size = 0.12, anim = "rise",
 | `pop` (default) | scales in from 145% in 5 frames | Size keys, ease out |
 | `fade` | fades in over 8 frames | Merge Blend |
 | `type` | typewriter, `speed` frames for the line (default 1 char/frame) | Text+ Write On `End` 0 -> 1 (layout doesn't reflow) |
-| `words` | word by word, `speed` frames per word | `End` jumps to each word's end, hold keys |
+| `words` | word by word, on `word_at` frames (spoken timing from `captions.py --json`) or `speed` frames apart | `End` jumps to each word's end, hold keys |
 | `rise` | letters rise and fade in one after another, `speed` frames apart | Follower modifier: `CharacterOffset` + `Opacity1` keys, `Delay` |
 | `slide` | slides up into place and fades in | Center keys (snap) + Blend |
 - Exit: `R.fade(item, 0, 8)` fades the title clip out (Edit-page fade).
@@ -183,6 +183,9 @@ left:SetProperties({Pan = -480, CropRight = 480}); right:SetProperties({Pan = 48
 R.fx(pip, "Transform", {Size = 0.35, Center = {0.78, 0.75}}); R.fx(pip, "ofx.com.blackmagicdesign.resolvefx.DropShadow")
 -- overlay footage (light leak, dust, grain clip) on V2 with a blend mode
 overlay:SetProperties({CompositeMode = resolve.COMPOSITE_SCREEN, Opacity = 70})   -- also COMPOSITE_ADD, _MULTIPLY, _OVERLAY ...
+-- green screen: the green clip on a track ABOVE the background; DeltaKeyer with the screen colour sampled from a frame
+-- (ffmpeg -ss 1 -i g.mov -frames:v 1 -vf "crop=40:40:60:60,scale=1:1" -f rawvideo -pix_fmt rgb24 - | od -An -tu1)  [L, E2E 2026-11-03: no fringe, no holes]
+R.fx(green, "DeltaKeyer", {BackgroundRed = 102/255, BackgroundGreen = 221/255, BackgroundBlue = 9/255, SpillMethod = "Medium", LowThreshold = 0.15, HighThreshold = 0.75})
 ```
 
 ## 8. Make your own preset

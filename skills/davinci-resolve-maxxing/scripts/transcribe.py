@@ -5,15 +5,16 @@
 # ///
 """Speech -> word timings + captions (Resolve's own transcription is Studio-only and crashes free).
 
-  transcribe.py AUDIO_OR_VIDEO [--model small.en] [--fps 30] [--out DIR] [--words-per-caption 3] [--max-chars 42]
+  transcribe.py AUDIO_OR_VIDEO [--model small.en] [--fps 30] [--out DIR] [--words-per-caption 3] [--max-chars 42] [--no-vad]
 
-Writes next to --out (default: the input's folder):
+Writes into --out (default: the current folder, never next to the footage):
   <stem>.words.json   [{word, start, end, start_f, end_f}]   -> word-pop captions (R.title per word/group)
   <stem>.srt          sentence captions, <= max-chars per line, <= 2 lines -> finish.py --subs
   <stem>.pop.srt      groups of N words -> punchy short-form captions
 Models (first use downloads into ~/.cache/huggingface): tiny.en 75 MB, base.en 145 MB, small.en 485 MB (default),
 medium.en 1.5 GB. Noisy rooms: pass names/jargon with --hotwords "Names, Product" (initial prompts made whisper loop).
-Always proof-read names; fix leftovers with captions.py --fix OLD=NEW.
+Always proof-read names; fix leftovers with captions.py --fix OLD=NEW. Speech missing from the start or middle (noisy room):
+the voice-activity filter dropped it; run again with --no-vad.
 """
 import argparse
 import json
@@ -37,7 +38,7 @@ def main():
     p.add_argument("media", nargs="?"); p.add_argument("--model", default="small.en")
     p.add_argument("--hotwords", help="comma-separated names/terms to bias recognition")
     p.add_argument("--prefetch", action="store_true", help="only download the model, then exit"); p.add_argument("--fps", type=float, default=30)
-    p.add_argument("--out"); p.add_argument("--words-per-caption", type=int, default=3); p.add_argument("--max-chars", type=int, default=42)
+    p.add_argument("--out"); p.add_argument("--no-vad", action="store_true"); p.add_argument("--words-per-caption", type=int, default=3); p.add_argument("--max-chars", type=int, default=42)
     p.add_argument("--language", default=None)
     p.add_argument("--device", default="cpu", help="cpu (default, works everywhere) or cuda (needs CUDA 12 cuBLAS/cuDNN)")
     a = p.parse_args()
@@ -50,14 +51,14 @@ def main():
     model = WhisperModel(a.model, device=a.device, compute_type="int8")
     if a.prefetch:
         return print("model ready")
-    segs, info = model.transcribe(a.media, word_timestamps=True, vad_filter=True, language=a.language, hotwords=a.hotwords)
+    segs, info = model.transcribe(a.media, word_timestamps=True, vad_filter=not a.no_vad, language=a.language, hotwords=a.hotwords)
     words, sentences = [], []
     for s in segs:
         ws = [w for w in (s.words or []) if w.word.strip()]
         words += [{"word": w.word.strip(), "start": round(w.start, 3), "end": round(w.end, 3),
                    "start_f": round(w.start * a.fps), "end_f": round(w.end * a.fps)} for w in ws]
         sentences.append((s.start, s.end, s.text.strip(), ws))
-    out = a.out or os.path.dirname(os.path.abspath(a.media))
+    out = a.out or os.getcwd()
     os.makedirs(out, exist_ok=True)
     stem = os.path.join(out, os.path.splitext(os.path.basename(a.media))[0])
     json.dump(words, open(stem + ".words.json", "w"), indent=1)

@@ -33,7 +33,7 @@ Write `$W/plan.md` and show it to the user before building:
 - Structure with timings: hook / build / payoff / CTA, or the reference's structure.
 - Shot list: `#, timeline in-out (frames), source file @ timecode, framing (crop cx), motion, text, sfx`.
 - Look (LUT name), fonts and colours, music source and its licence.
-- Open questions.
+- Open questions. If the footage can't fill the asked length without padding, say so here and propose the length it supports.
 Wait for "go" or edits.
 
 ## 2. Prep (Linux free needs ProRes)
@@ -180,7 +180,7 @@ for i, it in ipairs(items) do R.frame(it, xs[i], i % 2 == 0 and 1.15 or 1.0) end
 ```bash
 $S/captions.py $W/tx/cam.words.json --keep $W/keep.json --out $W/captions.srt --max-chars 24 --fix "Jon=John"
 $S/finish.py master.mov --to reels --subs $W/captions.srt --size 72 --name 20261029_talk_piece --version v01
-# short-form word-pop instead: --style pop --words 2 --json $W/pop.json, then one R.title per card (at, len, text)
+# word-pop instead: --style pop --words 3 --json $W/pop.json, then per card: R.title(tl, {text = c.text, at = c.at, len = c.len, anim = "words", word_at = c.word_at})
 ```
    If you hand-edit the keep ranges after `analyze.py`, pass captions.py the SAME list you gave `R.keep` (a JSON array works). captions.py starts a new
    cue at every jump cut, sentence end and pause, and keeps each cue at least 0.83 s. `--max-chars 24` suits finish.py's burn-in; for Resolve's own

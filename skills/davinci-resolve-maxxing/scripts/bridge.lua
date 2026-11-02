@@ -75,9 +75,11 @@ while running do
       reload = function() R = reload(); return R end,
     }, { __index = _G })
     local f, err = loadstring(src, "req")
-    local ok, r = false, err
-    if f then setfenv(f, env); ok, r = pcall(f) end
-    if r ~= nil then buf[#buf + 1] = (ok and "" or "ERROR: ") .. dump(r) end
+    local r = {n = 2, false, err}
+    if f then setfenv(f, env); r = (function(...) return {n = select("#", ...), ...} end)(pcall(f)) end
+    local t = {}  -- every return value, tab-separated like print (R.render returns status, seconds, path)
+    for i = 2, r.n do t[#t + 1] = dump(r[i]) end
+    if r.n > 2 or r[2] ~= nil then buf[#buf + 1] = (r[1] and "" or "ERROR: ") .. table.concat(t, "\t") end
     write(res, "-- id:" .. id .. "\n" .. table.concat(buf, "\n"))
   end
   bmd.wait(0.1)

@@ -9,7 +9,8 @@
               i.e. exactly the ranges you passed to R.keep. --at = timeline frame where the first range starts.
   --style lines: readable 1-2 line captions (9:16: 22-26 chars/line; 16:9: 42). pop: N words per card (short-form).
   --fix OLD=NEW  repeatable, case-insensitive whole-phrase replacement (names whisper got wrong).
-  --json         also write [{text, at, len}] in timeline frames for R.title word-pop cards.
+  --json         also write [{text, at, len, word_at}] in timeline frames for R.title cards; word_at = each word's frame
+                 from the card start: R.title(tl, {text = c.text, at = c.at, len = c.len, anim = "words", word_at = c.word_at})
 """
 import argparse
 import json
@@ -89,7 +90,7 @@ def main():
         for old, new in fixes:
             text = re.sub(r"(?i)\b" + re.escape(old) + r"\b", new, text)
         start, end = c[0]["at"], max(c[-1]["end"], c[0]["at"] + round(0.83 * a.fps))  # >= 0.83 s on screen (craft-and-specs)
-        cards.append({"text": text, "at": round(start), "len": round(end - start)})
+        cards.append({"text": text, "at": round(start), "len": round(end - start), "word_at": [round(w["at"] - start) for w in c]})
         out.append((start / a.fps, end / a.fps, wrap(text, a.max_chars) if a.style == "lines" else text))
     for i in range(len(cards) - 1):  # cards share one track: each ends where the next begins
         cards[i]["len"] = max(1, min(cards[i]["len"], cards[i + 1]["at"] - cards[i]["at"]))

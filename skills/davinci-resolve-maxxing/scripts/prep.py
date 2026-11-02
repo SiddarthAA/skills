@@ -45,6 +45,13 @@ def reframe(w, h, mode, cx):
             f"crop={w}:{h}:x='min(max({cx}*iw-{w}/2,0),iw-{w})':y=(ih-{h})/2")
 
 
+def rate(src):
+    """Average frame rate (r_frame_rate is 90000/1 on some phone VFR files)."""
+    out = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=avg_frame_rate,r_frame_rate",
+                          "-of", "csv=p=0", src], capture_output=True, text=True).stdout.strip().split(",")
+    return next((r for r in out[::-1] if r and not r.startswith("0/")), "30")
+
+
 def transcode(a):
     os.makedirs(a.out, exist_ok=True)
     for src in a.src:
@@ -52,7 +59,9 @@ def transcode(a):
         if os.path.exists(dst) and not a.force:
             print("skip", dst); continue
         vf = [reframe(*size(a.size), a.mode, a.cx)] if a.size else []
-        if a.fps: vf.append(f"fps={a.fps}")
+        # constant rate, first frame at 0: a seek (--start) or a rate change otherwise starts the file a frame late,
+        # and Resolve shows that missing frame 0 as BLACK
+        vf.append(f"fps={a.fps or rate(src)}:start_time=0")
         cut = (["-ss", str(a.start)] if a.start else []) + ["-i", src] + (["-t", str(a.dur)] if a.dur else [])
         ffmpeg(*cut, *(["-vf", ",".join(vf)] if vf else []), *PRORES, "-c:a", "pcm_s24le", "-ar", "48000", dst)
         print("ok", dst)

@@ -22,18 +22,11 @@ print(R.inputs(tool))   -- the tool's own params with current values (skips the 
 - Proof: always `R.still()` before and after, because a broken chain renders BLACK, not an error. Measure from the shell:
   `compare -metric MAE before.png after.png null: 2>&1` (the number in brackets is 0..1; above about 0.01 means a visible change).
 
-### Why R.fx is built the way it is (each one cost a black or wrong frame)
-| Trap | Fix in R.fx |
-|---|---|
-| **ResolveFX take the image on `Source`, not `Input`**: wiring `t.Input` leaves them unconnected, so the frame is black | `tool:FindMainInput(1)` (Source, Input, Background or MainInput1) |
-| Macros/groups output on `MainOutput1`; `mo.Input = t.Output` connects nothing, so the frame is black | `mo.Input:ConnectTo(tool:FindMainOutput(1))` |
-| **`comp:Paste(settings)` returns false unless that comp is open in the Fusion page** | seek the playhead onto the clip (SetCurrentTimecode is ignored ON the Fusion page, so seek first), `OpenPage("fusion")`, wait until `fusion:GetCurrentComp() == comp`, paste, go back |
-| `bmd.readstring(s, extra)` returns nil (`assert()` passes 2 values!), and **`Paste(nil)` pastes the CLIPBOARD**: the previous template, silently | read into a local first, call readstring with one argument, check `.Tools` |
-| No `bmd.readfile`/`io` in the console | `R.readfile(path)` (ffi + libc) |
-| Templates paste several top-level tools, and Fusion may auto-connect them to MediaOut | the output tool = the pasted tool that no OTHER pasted tool reads from |
-| Generators/titles have no main input | their output simply replaces the picture (use a carrier clip for overlays) |
-| A saved chain (A -> B -> C) pasted onto a clip: wiring C's input to the picture drops A and B | walk back from the output tool along main inputs to the chain's head and wire THAT (R.save_fx files) |
-| **Keys added live to a ResolveFX input read back right but RENDER the static value** (ZoomBlur blend keyed 0 -> 1: same frame at f0 and f9) | params with keys on an `ofx.*` tool: save it to a .setting, delete it, paste it back (pasted keys animate) |
+### What R.fx handles for you (each cost a black or wrong frame; matters only when wiring tools by hand)
+- ResolveFX take the image on `Source`, macros output on `MainOutput1`: always use `tool:FindMainInput(1)` / `FindMainOutput(1)`.
+- `comp:Paste()` works only while that comp is open in the Fusion page (seek first: SetCurrentTimecode is ignored there), and
+  `Paste(nil)` pastes the CLIPBOARD; `bmd.readstring` takes ONE argument. A pasted chain is wired at its head, not its output tool.
+- Keys added live to a ResolveFX input render the static value: R.fx saves the tool to a .setting and pastes it back (pasted keys animate).
 
 ## Speed ramps (verified frame-exact) [L]
 ```lua

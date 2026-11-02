@@ -3,6 +3,9 @@
 -- Every helper encodes a rule measured on free 21.1.1 Linux; see references/gotchas.md.
 -- Frames are RELATIVE to the timeline start (0 = first frame) unless a name says otherwise.
 local R = {}
+-- Warnings ride back in the rv reply ("WARN ..." lines). Never print() from helpers: that goes to the console the bridge is
+-- running in, and a print during a long request crashed Resolve once (FusionDoc::PrintFArgs).
+function R.warn(msg) R.warnings = R.warnings or {}; R.warnings[#R.warnings + 1] = msg end
 local HOME = os.getenv("HOME")
 R.dir = HOME .. "/resolve-bridge/"
 R.templates = R.dir .. "templates/"  -- built-in Fusion templates unpacked by install.sh: R.fx(item, R.templates .. "Edit/Effects/CCTV.setting")
@@ -67,7 +70,7 @@ function R.import(paths, bin)
       out[#out + 1] = it
       local t = it:GetClipProperty("Type") or ""
       if (t:find("Video") or t == "") and (it:GetClipProperty("Resolution") or "") == "" then
-        print("WARN undecodable on this OS (transcode to ProRes): " .. it:GetName())
+        R.warn("undecodable on this OS (transcode to ProRes): " .. it:GetName())
       end
     end
   end
@@ -285,7 +288,7 @@ local function key(tool, input, frames, ease)
     for _, kv in ipairs(frames) do want[kv[1]] = true end
     if m.ID == "XYPath" then prune(m.X:GetConnectedOutput():GetTool(), want); prune(m.Y:GetConnectedOutput():GetTool(), want) else prune(m, want) end
   end
-  if tool.ID:match("^ofx%.") then print("R.key: live keys on a ResolveFX render as a static value; key it through R.fx(item, id, {p = {{f, v}...}}) or R.save_fx + R.fx(file)") end
+  if tool.ID:match("^ofx%.") then R.warn("R.key: live keys on a ResolveFX render as a static value; key it through R.fx(item, id, {p = {{f, v}...}}) or R.save_fx + R.fx(file)") end
   ease = ease or frames.ease
   if ease then
     local e, m = type(ease) == "table" and ease or assert(R.EASE[ease], "unknown ease " .. tostring(ease)), tool[input]:GetConnectedOutput():GetTool()

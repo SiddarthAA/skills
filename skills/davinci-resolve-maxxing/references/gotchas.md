@@ -28,6 +28,7 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | `tl:AutoAlignClips()` | Returned false once and crashed Resolve twice, a moment after the call [L] | Media-pool `R.sync(cam, mic)` (AutoSyncAudio, sample-accurate) [L] |
 | `pm:ArchiveProject(...)` with source or proxy media flags | SIGSEGV [R]. With all flags false it returns false, no file [L] | `pm:ExportProject(name, path.drp, false)` [L] |
 | Studio-only calls: `DetectSceneCuts`, `PerformMulticamSmartSwitch`, `RemoveMotionBlur`, `PerformAudioClassification`, `AnalyzeForIntellisearch` | No crash, but the **"You have reached a limitation" upsell modal** opens, and while it's up later create calls silently return nil (CreateEmptyTimeline -> nil) [L] | Avoid; if `rv` warns about a dialog: `GUI_WIN='^Message$' gui key Escape` (= Not Yet). Full probe list: `capability-matrix.md` and the pages |
+| `print()` from helper code during a long bridge request | Crashed Resolve once (`FusionDoc::PrintFArgs`, 2026-11-03) [L] | Helpers use `R.warn` (comes back in the rv reply); prints in your own request chunk are captured safely |
 | Switching pages (`OpenPage`) while playback runs | Hangs the main thread and all scripting [R] | Never start playback from script |
 | Project-settings preset writes on a never-saved project | Project can't be opened again [R] | `pm:SaveProject()` first |
 
@@ -60,8 +61,6 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | `item:ExportLUT(...)` returned false [L] | Generate looks with `prep.py lut` |
 | Audio-only renders (preset "Audio Only" or `ExportVideo=false`) stayed "Ready" and never rendered [L] | Render the master, then `ffmpeg -i master.mov -vn -c:a pcm_s24le out.wav` |
 | SRT: `AppendToTimeline` places nothing **without a subtitle track**; with one, `recordFrame` is ignored and cues land at SRT time + the timeline's current end. The SRT item is named without ".srt" [L] | `tl:AddTrack("subtitle")`, append the SRT FIRST on the empty timeline, burn in with `R.render{settings={ExportSubtitle=true, SubtitleFormat="BurnIn"}}` (`pages/edit.md`) |
-| **ResolveFX wired on `Input` render BLACK** (their image input is `Source`); macros output on `MainOutput1`, not `Output` [L] | `R.fx` (FindMainInput/FindMainOutput) |
-| **`comp:Paste()` returns false unless the comp is open in the Fusion page**; `Paste(nil)` pastes the CLIPBOARD; `bmd.readstring(s, x)` (2 args, e.g. via `assert`) returns nil [L] | `R.fx(item, "x.setting")` handles all three |
 | `SetInput` on a misspelled input ID is ignored silently [L] | `R.inputs(tool)` lists IDs; R.fx asserts |
 | `AppendToTimeline` with a source range past the clip's end succeeds (frozen frame, no handles); centred transitions then return nil [L] | `R.place` asserts the range |
 | A timeline with **no video items** can't render (Duration 0, AddRenderJob "") [L] | Carrier/black clip on V1 |
@@ -83,7 +82,6 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | Whisper mangles names in noisy rooms (product and person names come out as similar-sounding words). `initial_prompt` made it loop [L] | `transcribe.py --hotwords "..."`, then `captions.py --fix OLD=NEW`. Put doubtful words in the plan's questions |
 | **libass (finish.py captions) uses fontconfig, not Fusion's list.** A family only Fusion has (Resolve bundles Open Sans) silently falls back [L] | `finish.py` picks an installed family via fc-list; `--font` to choose |
 | A fixed vertical crop (`prep.py --cx`) loses a speaker who moves; guessing Pan units put 3 of 8 cuts off-frame [L] | Keep 16:9, `R.timeline{crop = true}`, `R.frame(item, x, zoom)` per cut, positions read off `sheet.py --ranges` |
-| `R.dump()` in a project with no timeline | Returns a message (fixed); `R.tl()` is nil until `R.timeline` or `R.open` |
 
 ## Environment traps
 

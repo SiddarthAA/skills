@@ -57,9 +57,8 @@ tl:DeleteClips(items, ripple)   -- pass linked audio too
   bottom margin black out the whole frame. Letterbox 2.39:1 at 1080p = `{top = 138, bottom = 942}`; it applies after the grade and titles, in renders too.
 - Own timelines: delete with `R.mp():DeleteTimelines({tl})` (only ones you made). Source range of an item: `GetSourceStartFrame()`/`GetSourceEndFrame()`
   (check handles before centred transitions).
-- **AppendToTimeline happily places a source range past the clip's end** (frozen last frame, no handles); `R.place` asserts against it.
-- **A missing track index drops the clip at the end of V1**; occupied ranges make Resolve append at the track end. `R.place` deletes the stray item and errors.
-- `InsertFusionGeneratorIntoTimeline`, `InsertFusionCompositionIntoTimeline`, `InsertTitleIntoTimeline`... **ripple-insert 150 frames into V1 at the playhead**, splitting clips. Don't.
+- Placement traps (a source range past the clip's end, a missing track index, `Insert*IntoTimeline` ripple-inserting 150 frames
+  into V1): `gotchas.md`. `R.place` and `R.title` guard against them.
 - OTIO export works but **OTIO import returns nil** (the exported OTIO has an empty name). Author edits as FCPXML instead.
 - **FCPXML round trip is lossy, and `ImportTimelineFromFile` silently changes the PROJECT resolution** to the timeline's size [L]. Save
   `p:GetSetting("timelineResolutionWidth"/"Height")` before an import and set them back after. Exports drop the external mic track, the subtitle track

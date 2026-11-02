@@ -80,6 +80,8 @@ while running do
     local t = {}  -- every return value, tab-separated like print (R.render returns status, seconds, path)
     for i = 2, r.n do t[#t + 1] = dump(r[i]) end
     if r.n > 2 or r[2] ~= nil then buf[#buf + 1] = (r[1] and "" or "ERROR: ") .. table.concat(t, "\t") end
+    for _, w in ipairs(R.warnings or {}) do buf[#buf + 1] = "WARN " .. w end  -- R.warn: never print() from lib code
+    R.warnings = {}
     write(res, "-- id:" .. id .. "\n" .. table.concat(buf, "\n"))
   end
   bmd.wait(0.1)

@@ -115,40 +115,9 @@ R.title(tl, {text = "LAUNCH DAY", at = 30, len = 60, size = 0.12, anim = "rise",
 - Word-pop captions from a transcript: `recipes.md` (talking head) + `transcribe.py`.
 
 ## 5. How each preset is built (copy, change the numbers, R.save_fx)
-```lua
-local OFX = "ofx.com.blackmagicdesign.resolvefx."
--- zoom-punch
-local x = R.fx(it, "Transform", {MotionBlur = 1, Quality = 8, ShutterAngle = 180}); R.key(x, "Size", {{0, 1.35}, {6, 1.0}, ease = "snap"})
--- handheld
-R.fx(it, "CameraShake", {XDeviation = 0.12, YDeviation = 0.12, RotationDeviation = 0.08, Speed = 0.35, OverallStrength = 0.25}); R.fx(it, "Transform", {Size = 1.06})
--- flicker
-R.fx(it, OFX .. "FlickerAddition", {flickerRange = 0.6, flickerSpeed = 2, flickerRand = 0.8})
--- strobe
-R.fx(it, "BrightnessContrast").Gain:SetExpression("iif(time % 4 < 2, 1, 0.25)")
--- flash-in
-local bc = R.fx(it, "BrightnessContrast"); R.key(bc, "Gain", {{0, 5}, {8, 1}, ease = "out"}); R.key(bc, "Saturation", {{0, 0}, {8, 1}, ease = "out"})
--- rgb-split
-R.fx(it, "KD_ChannelShifter", {Center1 = {0.508, 0.5}, Center3 = {0.492, 0.5}})
--- vhs
-R.fx(it, "Blur", {LockXY = 0, XBlurSize = 2.5, YBlurSize = 0.3}); R.fx(it, "KD_ChannelShifter", {Center1 = {0.503, 0.5}, Center3 = {0.497, 0.5}})
-R.fx(it, OFX .. "ScanlineV2", {frequency = 40, width = 0.4, blend = 0.8}); R.fx(it, "FilmGrain", {MasterStrength = 0.06, Monochrome = 1})
-R.fx(it, "BrightnessContrast", {Saturation = 0.7, Contrast = -0.08, Lift = 0.04})
--- film-look
-R.fx(it, "FilmGrain", {MasterStrength = 0.06}); R.fx(it, OFX .. "Vignette", {size = 0.8, softness = 0.8, transparency = 0.45})
--- letterbox: zero-gain BrightnessContrast outside an inverted rectangle
-local bc = R.fx(it, "BrightnessContrast", {Gain = 0, Lift = 0}); local rc = it:GetFusionCompByIndex(1):AddTool("RectangleMask")
-rc:SetInput("Width", 1.2); rc:SetInput("Height", (16 / 9) / 2.39); rc:SetInput("Invert", 1); bc.EffectMask = rc.Mask
--- glow / black-white
-R.fx(it, "SoftGlow", {Threshold = 0.6, Gain = 1.5, XGlowSize = 25}) ; R.fx(it, "BrightnessContrast", {Saturation = 0, Contrast = 0.2})
--- light-leak: FastNoise (Detail 0, Contrast 1.6, XScale 0.6, SeetheRate 0.05, Color2 = orange) as Foreground of a Screen Merge, Center keyed across
-local n = it:GetFusionCompByIndex(1):AddTool("FastNoise"); --[[ set inputs as listed ]] local m = R.fx(it, "Merge", {ApplyMode = "Screen", Blend = 0.75}); m.Foreground = n.Output
--- blur-region: Blur (XBlurSize 40) masked by an EllipseMask (EffectMask)
--- zoom-blur-in
-local x = R.fx(it, "Transform"); R.key(x, "Size", {{0, 1.5}, {8, 1.0}, ease = "out"})
-R.fx(it, OFX .. "ZoomBlur", {blend = {{0, 0}, {8, 1}, ease = "out"}})      -- ResolveFX blend: 0 = full effect, 1 = original
-```
-Every builder (incl. impact-shake, glitch, light-leak, lower-third) is in `assets/fx/build.lua`:
-`dofile(R.effects .. "build.lua"); local tools = FX.b["glitch"](item)` builds it live; change numbers there and `R.save_fx` a variant.
+Every builder is in `assets/fx/build.lua`, a few lines of `R.fx` + `R.key` each (zoom-punch = a Transform with motion blur and a
+snap-eased Size key 1.35 -> 1.0 over 6 frames; light-leak = FastNoise screened over the clip with its Center keyed across).
+`dofile(R.effects .. "build.lua"); local tools = FX.b["glitch"](item)` builds one live; change the numbers there and `R.save_fx` a variant.
 
 ## 6. Tracking: follow an object, blur a face, stabilize on a point [L]
 Fusion's Tracker can't be run by script on free (`pages/fusion.md`), so track outside Resolve with OpenCV and write keyframes:

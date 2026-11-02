@@ -134,14 +134,16 @@ return R.dump(tl)
 
 1. Transcode the recording (`prep.py transcode`, keep 16:9; for 9:16 use `--mode blur` and let zooms do the work).
 2. VO first (`transcribe.py vo.wav`), then cut picture to the VO: one idea every 5-10 s, hold each result for 2 s or more.
-3. Zoom-ins: `R.zoom` (Fusion Transform, eased in, hold, eased out). Read the target off a screenshot or contact sheet
+3. Zoom-ins: `R.zoom` (Fusion Transform, zooms in over `frames` with the `ease` curve, holds until `hold`, zooms out). Read the target off a screenshot or contact sheet
    as fractions from the TOP-LEFT. Verified pixel-exact: the target point lands at frame centre.
 ```lua
 local it = R.place(tl, "screen.mov", {at = 0, len = 900, media = "video"})[1]
-R.zoom(it, {target = {0.72, 0.31}, scale = 2.0, at = 120, hold = 210, ease = 15})   -- button at 72% across, 31% down
+R.zoom(it, {target = {0.72, 0.31}, scale = 2.0, at = 120, hold = 210, frames = 15})  -- button at 72% across, 31% down
 R.zoom(it, {target = {0.30, 0.80}, scale = 1.5, at = 400, hold = 480})              -- more zooms add keyframes
 ```
    Rules: 125-150% for a panel, about 200% for a button. Hold until the result is visible. At most one zoom move every 3-5 s.
+   Callouts (box + line + label pill, animated in): `dofile(R.effects .. "callout.lua")`, then
+   `R.callout(tl, {at = 250, len = 90, label = "Type anywhere", pill = {975, 200}, boxes = {{520, 380, 1430, 770, 975, 380}}})` (timeline px from the top-left) [L].
 4. Captions: `captions.py vo.words.json --keep keep.json` if the VO was cut, then `finish.py --subs` (never over the UI being shown; caption in a band).
 5. Blur secrets (emails, keys) before export: ffmpeg `boxblur` on a crop region in prep, or a Fusion Blur with a mask.
 6. Look: `agent/clean.cube`; loudness -14 LUFS.

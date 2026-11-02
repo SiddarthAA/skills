@@ -265,11 +265,19 @@ end
 
 -- frames = {{frame, value}, ..., ease = "out"}; adds to existing animation. ease: a name in R.EASE or {x1, y1, x2, y2}
 -- (applied to every segment of this input; Center/XYPath eases X and Y).
+local function prune(sp, want)  -- AddModifier keys the old value at the current frame: drop keys nobody asked for
+  for f in pairs(sp:GetKeyFrames()) do if not want[f] then sp:DeleteKeyFrames(f) end end  -- (f, f) deletes nothing
+end
+
 local function key(tool, input, frames, ease)
-  if not tool[input]:GetConnectedOutput() then
-    tool:AddModifier(input, tool[input]:GetAttrs().INPS_DataType == "Point" and "XYPath" or "BezierSpline")
-  end
+  local fresh = not tool[input]:GetConnectedOutput()
+  if fresh then tool:AddModifier(input, tool[input]:GetAttrs().INPS_DataType == "Point" and "XYPath" or "BezierSpline") end
   for _, kv in ipairs(frames) do tool[input][kv[1]] = kv[2] end
+  if fresh then
+    local want, m = {}, tool[input]:GetConnectedOutput():GetTool()
+    for _, kv in ipairs(frames) do want[kv[1]] = true end
+    if m.ID == "XYPath" then prune(m.X:GetConnectedOutput():GetTool(), want); prune(m.Y:GetConnectedOutput():GetTool(), want) else prune(m, want) end
+  end
   if tool.ID:match("^ofx%.") then print("R.key: live keys on a ResolveFX render as a static value; key it through R.fx(item, id, {p = {{f, v}...}}) or R.save_fx + R.fx(file)") end
   ease = ease or frames.ease
   if ease then
@@ -513,7 +521,8 @@ end
 -- Follow a track made by scripts/track.py (OpenCV): key tool[input] (a Point: Text+ Center, a mask's Center, Transform Center)
 -- to the tracked box centre. item = the TRACKED clip on the timeline (its source frames are the track's frame numbers);
 -- o.on = the item whose comp holds the tool when that is another clip (a title carrier above it). o.offset = {dx, dy} (fractions, y up);
--- o.size = scale -> also key the mask's Width/Height to the box (masks measure both in frame WIDTHS);
+-- o.size = scale -> also key the mask's Width/Height to the box (Width: frame widths; Height: frame widths on an EllipseMask,
+--   frame HEIGHTS on a RectangleMask [L]);
 -- o.stabilize = true -> key a Transform Center so the object stays where it was on the item's first tracked frame.
 -- Returns the number of keyed frames.
 function R.track(item, tool, input, path, o)
@@ -528,7 +537,7 @@ function R.track(item, tool, input, path, o)
       first = first or b
       if o.stabilize then pts[#pts + 1] = {f, {0.5 - (b[1] - first[1]), 0.5 - (b[2] - first[2])}}
       else pts[#pts + 1] = {f, {b[1] + d[1], b[2] + d[2]}} end
-      if o.size then wp[#wp + 1] = {f, b[3] * o.size}; hp[#hp + 1] = {f, b[4] * t.h / t.w * o.size} end
+      if o.size then wp[#wp + 1] = {f, b[3] * o.size}; hp[#hp + 1] = {f, b[4] * (tool.ID == "RectangleMask" and 1 or t.h / t.w) * o.size} end
     end
   end
   assert(#pts > 0, "no tracked frames in source range " .. s0 .. "-" .. s0 + n - 1)
@@ -538,15 +547,19 @@ function R.track(item, tool, input, path, o)
 end
 
 -- Zoom onto a point and back (screen-recording demos). target = {x, y} as fractions of the frame measured from the
--- TOP-LEFT (what you read off a screenshot). Eases in over o.ease frames from o.at, holds to o.hold, eases out.
+-- TOP-LEFT (what you read off a screenshot). Zooms in over o.frames (15) from o.at with the o.ease curve ("inout"),
+-- holds until o.hold (an ABSOLUTE frame; omit it to stay zoomed in), zooms back out.
 -- Maths: with the pivot at the centre, point t lands at (t - 0.5) * s + Center, so Center = 0.5 - (t - 0.5) * s (y up).
 function R.zoom(item, o)
   local xf = R.motion(item, {blur = false})
-  local s, e = o.scale or 2.0, o.ease or 15
+  local s = o.scale or 2.0
+  local e = o.frames or (type(o.ease) == "number" and o.ease) or 15  -- a number in o.ease = the old frame-count spelling
+  local curve = type(o.ease) == "string" and o.ease or "inout"
   local tx, ty = o.target[1], 1 - o.target[2]
   local c = {0.5 - (tx - 0.5) * s, 0.5 - (ty - 0.5) * s}
-  key(xf, "Size", {{o.at, 1.0}, {o.at + e, s}, {o.hold, s}, {o.hold + e, 1.0}})
-  key(xf, "Center", {{o.at, {0.5, 0.5}}, {o.at + e, c}, {o.hold, c}, {o.hold + e, {0.5, 0.5}}})
+  local sz, ce = {{o.at, 1.0}, {o.at + e, s}, ease = curve}, {{o.at, {0.5, 0.5}}, {o.at + e, c}, ease = curve}
+  if o.hold then sz[3], sz[4], ce[3], ce[4] = {o.hold, s}, {o.hold + e, 1.0}, {o.hold, c}, {o.hold + e, {0.5, 0.5}} end
+  key(xf, "Size", sz); key(xf, "Center", ce)
   return xf
 end
 

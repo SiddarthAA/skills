@@ -71,7 +71,7 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
 | `scripts/analyze.py`, `transcribe.py`, `captions.py`, `sheet.py` | beats, cuts, silence, loudness; word timings; captions on the timeline clock; contact sheets |
 | `scripts/finish.py` | Master to Reels/TikTok/Shorts/YouTube/LinkedIn/X/hero/podcast, loudness, captions, QA |
 | `scripts/fl_eq.py`, `assets/fairlight/` | Write Fairlight EQ presets; starter EQ/Dynamics presets |
-| `scripts/track.py`, `assets/fx/` | OpenCV object/face tracking for `R.track`; effect presets + `build.lua` (their builders) for `R.fx` |
+| `scripts/track.py`, `assets/fx/` | OpenCV object/face tracking for `R.track`; effect presets + `build.lua` (their builders) for `R.fx`; `callout.lua` (`R.callout`) |
 | `references/capability-matrix.md` | Every feature: API / template / GUI / not on free, plus the coverage scorecard |
 | `references/pages/*.md`, `references/project-and-prefs.md` | Per-page how-to with verified calls, templates and GUI coordinates |
 | `references/effects-catalog.tsv` | The 53 ResolveFX on free: ID, category, image input, params with defaults |

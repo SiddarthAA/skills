@@ -41,7 +41,7 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Transform / crop / opacity / flip / composite / retime quality | ✓ | | Inspector | 32 properties |
 | Keyframed motion, easing | ✓ (Fusion) | | Inspector keyframes | `R.key(tool, input, {{f, v}..., ease = "snap"})` (linear/in/out/inout/smooth/snap/back/hold or a cubic-bezier), `R.motion`, `R.zoom` |
 | Effects on clips | ✓ (Fusion, `R.fx`) | ✓ 18 skill presets (`R.effects`) + your own (`R.save_fx`) | Effects Library drag ✓ | `effects.md`. One effect over several clips: compound clip + `R.fx`. Drag-applied OFX are invisible to the API |
-| Transitions | ✓ **98** (67 Fusion incl. whip pans, crash zoom, glitch, flashes; 30 simple; 1 OFX) | Fusion transition templates | | `effects.md` §3. Center alignment needs handles |
+| Transitions | ✓ **98** (67 Fusion incl. whip pans, crash zoom, glitch, flashes; 30 simple; 1 OFX) + 3 audio crossfades (`category = "audio"`) | Fusion transition templates | | `effects.md` §3. Center alignment needs handles |
 | Titles, text animation | ✓ `R.title` anim pop/fade/type/words/rise/slide, Follower per character, counters | ✓ ~120 title templates (lower thirds...) | | Never `Insert*IntoTimeline` (ripples 150 frames) |
 | Generators, particles, backgrounds | ✓ carrier + `R.fx(carrier, R.templates.."Edit/Generators/Starfield.setting")` (Starfield, Snow verified) | 417 templates | | |
 | Speed, ramps, freeze, reverse | ✓ constant; ✓ ramps/freeze/reverse via Fusion TimeStretcher (frame-exact) | | retime curve | Don't use TimeSpeed |

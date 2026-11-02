@@ -8,7 +8,7 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Measure | 2026-10-29 (before) | now (runs up to 2026-11-03) |
 |---|---|---|
 | API methods exercised (of 416 in the 21.1 stub) | 149 (36%) | **401 (96%)**. Untouched: cloud projects + SetCurrentDatabase (5), burn-in presets (3), mattes (3), clone tool settings/stop (2), EncryptDCTL, RegenerateMagicMask |
-| Blind validation runs (fresh agents, skill only) | 1 (talking-head reel) | **10**: effects/edit, Fairlight mix, Color grade, captioned vertical; then whole videos in a studio: recap reel, talking head (tracked face blur, green screen), product demo (16:9 + 9:16), 24 fps look piece. Every friction point fixed or documented |
+| Blind validation runs (fresh agents, skill only) | 1 (talking-head reel) | **11**: effects/edit, Fairlight mix, Color grade, captioned vertical; then whole videos in a studio: recap reel, talking head (tracked face blur, green screen), product demo (16:9 + 9:16), 24 fps look piece, teaser (qualifier, callout, ducking, bars). Every friction point fixed or documented |
 | ResolveFX usable from script | 0 of 53 (rendered black) | **53 of 53** attach and render through Fusion (41 change the frame at defaults; 12 are identity until set) |
 | Fusion tools proven | 6 | any tool via `R.fx` (registry of about 500) + expressions + `.setting` macros |
 | Fusion templates usable | 0 | **417** built-in via `R.fx` (CCTV, Watermark, Binoculars, DVE, Headline title verified) |

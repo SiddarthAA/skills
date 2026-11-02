@@ -73,7 +73,7 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Add nodes (serial/parallel/layer/window) | ✗ | DRX | ✓ keys | Alt+S/P/L, Alt+C/Q/G/B |
 | Primaries (temp, tint, contrast, wheels, sat, hue) | ✗ (CDL covers lift/gamma/gain/sat) | DRX | ✓ number fields | |
 | Curves, warper, ColorSlice | ✗ on the Color page; ✓ curves via Fusion `R.curve` | ✓ LUT (global) / DRX | drag | Hue-vs-sat curves don't take script keys |
-| Qualifier, power windows | ✗ on the Color page (grade them by API: SetCDL on that node); ✓ windows via a masked Fusion ColorCorrector | DRX | ✓ fields (both verified with pixel tests) | `pages/color.md` "Grade by script in Fusion" |
+| Qualifier, power windows | ✗ on the Color page (grade them by API: SetCDL on that node); ✓ by script in Fusion: `R.qualify` (colour key, optional window), masked ColorCorrector | DRX | ✓ fields (both verified with pixel tests) | `pages/color.md` "Grade by script in Fusion" |
 | Tracking | ✗ | | ✓ tracker ▶ | |
 | Gallery stills/albums (grab, label, export/import DRX) | ✓ | | | |
 | DCTL | watermark on free | | | Studio |

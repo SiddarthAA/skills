@@ -38,9 +38,14 @@ e:SetInput("Center", {0.25, 0.45}); e:SetInput("Width", 0.3); e:SetInput("Height
 -- global saturation: HueCurves with every Sat key set to the same value (keep the table's handles): x0.2 -> sat 0.095 -> 0.021
 local hc = R.fx(item, "HueCurves"); local sp = hc.Sat:GetConnectedOutput():GetTool(); local k = sp:GetKeyFrames()
 for _, v in pairs(k) do v[1] = 0.2 end; sp:SetKeyFrames(k, true)
+-- qualifier (secondary): correct only pixels near a colour sampled off a still, optionally inside a window (2026-11-03)
+local w = item:GetFusionCompByIndex(1):AddTool("RectangleMask"); w:SetInput("Center", {0.52, 0.55}); w:SetInput("Width", 0.56); w:SetInput("Height", 0.6)
+R.qualify(item, {0.121, 0.148, 0.213}, {MasterRedGain = 2.5}, {tol = 0.08, soft = 0.05, window = w})
+--   measured: dark-navy screen R 0.121 -> 0.248, wall and shirt unchanged; without the window dark hair was caught too
 ```
-- **Hue-selective changes (HueCurves with different values per hue) do nothing when set by script** (bit-identical output) [L]. Hue qualifiers:
-  Color page GUI route below, or a keyer (Fusion `ChromaKeyer`/`DeltaKeyer`; DeltaKeyer verified for green screen, `effects.md` §7) as the correction's EffectMask.
+- **Hue-selective changes (HueCurves with different values per hue) do nothing when set by script** (bit-identical output) [L]. Use
+  `R.qualify` (a colour-distance key in a Fusion Custom tool -> BitmapMask -> the ColorCorrector's EffectMask). ChromaKeyer ranges set by
+  script key nothing [L]; DeltaKeyer works for green/blue screens (`effects.md` §7). Masks combine by `PaintMode` ("Multiply" = inside both).
 - Save a grade built this way as a preset (`R.save_fx({cc, cr}, path)`) and re-apply it to every clip of a scene with `R.fx(item, path)`.
 - Whole-video looks are still best as a LUT (`R.lut`/`R.group`): one node, cheap, and it follows the project's colour management.
 

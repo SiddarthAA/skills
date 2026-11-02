@@ -489,6 +489,26 @@ function R.curve(item, pts, ch)
   return cc
 end
 
+-- Qualifier (a secondary) by script: a ColorCorrector (params as R.fx) on pixels near one RGB colour (sample it off a still),
+-- soft edge. o.tol (0.08) = colour distance fully inside, o.soft (0.05) = fade-out width, o.window = a mask tool (RectangleMask,
+-- EllipseMask...) that limits it, like a qualifier inside a power window. Returns the ColorCorrector and the BitmapMask.
+-- [L] dark navy screen, red gain 2.5: screen R 0.121 -> 0.248, wall and shirt unchanged; without a window, dark hair caught too.
+function R.qualify(item, rgb, params, o)
+  o = o or {}
+  local cc = R.fx(item, "ColorCorrector", params)
+  local comp = item:GetFusionCompByIndex(1)
+  local ct = comp:AddTool("Custom")  -- alpha = 1 within tol of rgb, 0 beyond tol + soft
+  ct.Image1 = comp:FindTool("MediaIn1").Output
+  for i, v in ipairs({rgb[1], rgb[2], rgb[3], o.tol or 0.08, o.soft or 0.05}) do ct:SetInput("NumberIn" .. i, v) end
+  ct:SetInput("Intermediate1", "sqrt((r1-n1)*(r1-n1)+(g1-n2)*(g1-n2)+(b1-n3)*(b1-n3))")
+  ct:SetInput("AlphaExpression", "max(0, min(1, (n4 + n5 - i1) / n5))")
+  local bm = comp:AddTool("BitmapMask")
+  bm.Image = ct.Output; bm:SetInput("Channel", "Alpha")
+  if o.window then bm.EffectMask = o.window.Mask; bm:SetInput("PaintMode", "Multiply") end  -- default "Merge" = union, not inside
+  cc.EffectMask = bm.Mask
+  return cc, bm
+end
+
 -- A tool's own settable inputs with current values (skips images, masks and the common Settings page): param IDs for R.fx.
 function R.inputs(tool)
   local o = {}

@@ -42,7 +42,7 @@ tl:SetTrackName("video", 1, "A-roll") ; tl:SetTrackEnable("video", 2, false) ; t
 tl:AddMarker(frame, "Red", "hook", "note", 1, "custom-id") ; tl:GetMarkerByCustomData("custom-id") ; tl:UpdateMarkerCustomData(frame, "x")
 tl:DeleteMarkerAtFrame(f) ; tl:DeleteMarkerByCustomData("x") ; tl:DeleteMarkersByColor("Red")       -- same set on items
 item:AddFlag("Green") ; item:ClearFlags("All") ; item:SetClipColor("Pink") ; item:SetClipEnabled(false) ; item:SetName("hero")
-item:GetLeftOffset() ; item:GetSourceStartTime() ; item:GetTrackTypeAndIndex() ; item:GetLinkedItems() ; tl:SetClipsLinked(items, false)
+item:GetLeftOffset() ; item:GetSourceStartTime() ; item:GetTrackTypeAndIndex() --[[ ONE table {type, index} ]] ; item:GetLinkedItems() ; tl:SetClipsLinked(items, false)
 item:AddTake(mpi, startFrame, endFrame) ; item:SelectTakeByIndex(2) ; item:FinalizeTake() ; item:DeleteTakeByIndex(2)
 tl:CreateCompoundClip(items, {name = "cc"}) ; tl:CreateFusionClip(items) ; tl:DuplicateTimeline("v2")   -- the duplicate becomes current
 tl:SetStartTimecode("00:59:50:00") ; tl:GetSettings() (69 keys) ; tl:SetSettings({...}) ; tl:SetOutputBlanking({top = 138, bottom = 942})

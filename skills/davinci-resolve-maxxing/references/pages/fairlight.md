@@ -19,13 +19,14 @@ Coordinates assume a 1920x1080 screen, maximized main window (1854x1048), defaul
 | Automation, ADR, recording | GUI only | Manual ch. 173-178. Not needed for agent edits |
 | Voice isolation, Dialogue Separator, Music Remixer | Studio | Not on free. `tl:SetVoiceIsolationState` returns true but does nothing useful [L]. Clean up with ffmpeg (`afftdn`, `highpass`) before import |
 
-**Ducking with a threshold, outside Resolve** [L 2026-11-03]: duck the music bed against the voice as it plays in the edit (a VO placed
-uncut, or the dialogue from a music-free render), then import the result as the bed:
+**Ducking with a threshold, outside Resolve** [L 2026-11-03]: duck the music bed against the voice as it plays in the edit, then import
+the result as the bed. A VO placed uncut is that voice; for jump-cut dialogue rebuild it from the same keep ranges (seconds):
+`ffmpeg -i cam.mov -vn -af "aselect='between(t,0.2,3.1)+between(t,4.0,7.5)',asetpts=N/SR/TB" voice.wav`.
 ```bash
-ffmpeg -i music.wav -i voice.wav -filter_complex "[0:a][1:a]sidechaincompress=threshold=0.02:ratio=20:level_sc=4:attack=50:release=500[d]" -map "[d]" music_ducked.wav
+ffmpeg -i music.wav -i voice.wav -filter_complex "[0:a][1:a]sidechaincompress=threshold=0.02:ratio=20:level_sc=1:attack=50:release=500[d]" -map "[d]" music_ducked.wav
 ```
-Measured: under a -31.5 dB camera voice the bed went -18.3 -> -31.7 dB during speech and stayed -16.6 dB in a pause. `level_sc` scales the
-key: about 4 for a quiet camera voice, 1 for a VO near -20 dB. Check a speech window and a pause with `volumedetect`.
+Measured: the bed dipped 8-13 dB under speech and stayed put in pauses (two runs). `level_sc` scales the key: start at 1 and raise it
+(2-8) only if the dip under speech is under ~8 dB. Check a speech window and a pause with `volumedetect`.
 
 There's no API for track EQ, dynamics, inserts, buses or ducking. The template route covers them, so the GUI is a one-time setup.
 

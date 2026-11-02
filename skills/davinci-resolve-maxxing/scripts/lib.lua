@@ -493,18 +493,23 @@ function R.curve(item, pts, ch)
 end
 
 -- Qualifier (a secondary) by script: a ColorCorrector (params as R.fx) on pixels near one RGB colour (sample it off a still),
--- soft edge. o.tol (0.08) = colour distance fully inside, o.soft (0.05) = fade-out width, o.window = a mask tool (RectangleMask,
--- EllipseMask...) that limits it, like a qualifier inside a power window. Returns the ColorCorrector and the BitmapMask.
--- [L] dark navy screen, red gain 2.5: screen R 0.121 -> 0.248, wall and shirt unchanged; without a window, dark hair caught too.
+-- soft edge. The distance is hue-aware: chroma (R-G, B-G) divided by brightness, plus half-weight brightness, so a dark
+-- navy screen and dark neutral hair stay apart (plain RGB distance caught both). o.tol (0.1) = distance fully inside,
+-- o.soft (0.08) = fade-out width, o.window = a mask tool (RectangleMask, EllipseMask...) limiting WHERE, like a power window.
+-- Returns the ColorCorrector and the BitmapMask.
 function R.qualify(item, rgb, params, o)
   o = o or {}
   local cc = R.fx(item, "ColorCorrector", params)
   local comp = item:GetFusionCompByIndex(1)
   local ct = comp:AddTool("Custom")  -- alpha = 1 within tol of rgb, 0 beyond tol + soft
   ct.Image1 = comp:FindTool("MediaIn1").Output
-  for i, v in ipairs({rgb[1], rgb[2], rgb[3], o.tol or 0.08, o.soft or 0.05}) do ct:SetInput("NumberIn" .. i, v) end
-  ct:SetInput("Intermediate1", "sqrt((r1-n1)*(r1-n1)+(g1-n2)*(g1-n2)+(b1-n3)*(b1-n3))")
-  ct:SetInput("AlphaExpression", "max(0, min(1, (n4 + n5 - i1) / n5))")
+  local m = math.max(rgb[1], rgb[2], rgb[3]) + 0.02
+  for i, v in ipairs({0, 0, 0, o.tol or 0.1, o.soft or 0.08, (rgb[1] - rgb[2]) / m, (rgb[3] - rgb[2]) / m, m}) do ct:SetInput("NumberIn" .. i, v) end
+  ct:SetInput("Intermediate1", "max(r1, max(g1, b1)) + 0.02")
+  ct:SetInput("Intermediate2", "(r1 - g1) / i1 - n6")
+  ct:SetInput("Intermediate3", "(b1 - g1) / i1 - n7")
+  ct:SetInput("Intermediate4", "sqrt(i2*i2 + i3*i3 + 0.25*(i1 - n8)*(i1 - n8))")
+  ct:SetInput("AlphaExpression", "max(0, min(1, (n4 + n5 - i4) / n5))")
   local bm = comp:AddTool("BitmapMask")
   bm.Image = ct.Output; bm:SetInput("Channel", "Alpha")
   if o.window then bm.EffectMask = o.window.Mask; bm:SetInput("PaintMode", "Multiply") end  -- default "Merge" = union, not inside

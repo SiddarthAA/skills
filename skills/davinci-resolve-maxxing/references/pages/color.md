@@ -40,8 +40,8 @@ local hc = R.fx(item, "HueCurves"); local sp = hc.Sat:GetConnectedOutput():GetTo
 for _, v in pairs(k) do v[1] = 0.2 end; sp:SetKeyFrames(k, true)
 -- qualifier (secondary): correct only pixels near a colour sampled off a still, optionally inside a window (2026-11-03)
 local w = item:GetFusionCompByIndex(1):AddTool("RectangleMask"); w:SetInput("Center", {0.52, 0.55}); w:SetInput("Width", 0.56); w:SetInput("Height", 0.6)
-R.qualify(item, {0.121, 0.148, 0.213}, {MasterRedGain = 2.5}, {tol = 0.08, soft = 0.05, window = w})
---   measured: dark-navy screen R 0.121 -> 0.248, wall and shirt unchanged; without the window dark hair was caught too
+R.qualify(item, {0.121, 0.148, 0.213}, {MasterRedGain = 2.5})                 -- add {window = w} to limit WHERE as well
+--   measured (hue-aware distance): dark-navy screen R 0.121 -> 0.265; dark hair, wall and shirt bit-identical, no window needed
 ```
 - **Hue-selective changes (HueCurves with different values per hue) do nothing when set by script** (bit-identical output) [L]. Use
   `R.qualify` (a colour-distance key in a Fusion Custom tool -> BitmapMask -> the ColorCorrector's EffectMask). ChromaKeyer ranges set by

@@ -24,15 +24,17 @@ def ts(t):
 
 
 def remap(words, ranges, fps, at, shift=0.0):
-    """Source-clock words -> timeline frames. Words outside every kept range are dropped.
+    """Source-clock words -> timeline frames. A word goes to the first kept range it overlaps, its start clamped to the
+    range start (whisper often starts a word early, inside the pause that was cut). Words outside every range are dropped.
     shift (s) is added to every word first: a transcript of a synced external mic is on the MIC clock,
     camera time = mic time - AudioOffset/fps, so pass shift = -AudioOffset/fps."""
-    out, offset = [], at
+    out, offset, used = [], at, set()
     for i, (a, b) in enumerate(ranges):
-        for w in words:
+        for j, w in enumerate(words):
             sf, ef = (w["start"] + shift) * fps, (w["end"] + shift) * fps
-            if a <= sf < b:
-                out.append({"word": w["word"], "at": offset + (sf - a), "end": offset + (min(ef, b) - a), "cut": i})
+            if j not in used and sf < b and ef > a:
+                used.add(j)
+                out.append({"word": w["word"], "at": offset + (max(sf, a) - a), "end": offset + (min(ef, b) - a), "cut": i})
         offset += b - a
     return sorted(out, key=lambda w: w["at"])
 

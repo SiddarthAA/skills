@@ -27,10 +27,10 @@ and Deliver like a Color-page grade (Fusion runs BEFORE the Color page, so a Col
 ```lua
 R.curve(item, {{0, 0.05}, {0.25, 0.18}, {0.75, 0.85}, {1, 0.97}})          -- S-curve, soft blacks/whites (contrast std 0.357 -> 0.374)
 R.curve(item, {{0, 0}, {1, 0.5}}, "r")                                   -- one channel: red mean 0.541 -> 0.270 exactly, G/B untouched
--- lift / gamma / gain / contrast / saturation, master or per range (Shadows / Midtones / Highlights) and per channel:
+-- lift / gamma / gain / contrast / saturation, master or per range (Shadows / MidTones / Highlights) and per channel:
 R.fx(item, "ColorCorrector", {MasterRGBContrast = 1.1, MasterRGBGamma = 1.05, Saturation1 = 1.15})
 R.fx(item, "ColorCorrector", {ShadowsBlueGain = 1.25, ShadowsRedGain = 0.85, HighlightsRedGain = 1.12, HighlightsBlueGain = 0.85})  -- teal/orange
---   measured: shadows R 0.051 -> 0.045, B 0.067 -> 0.079; highlights B 0.217 -> 0.190. Input names: <Master|Shadows|Midtones|Highlights><RGB|Red|Green|Blue><Gain|Lift|Gamma|Contrast|Brightness>
+--   measured: shadows R 0.051 -> 0.045, B 0.067 -> 0.079; highlights B 0.217 -> 0.190. Input names: <Master|Shadows|MidTones|Highlights><RGB|Red|Green|Blue><Gain|Lift|Gamma|Contrast|Brightness> (MidTones: capital T)
 -- power window: any correction inside a soft mask (relight a face, darken a sky); track it with R.track (effects.md §6)
 local cr = R.fx(item, "ColorCorrector", {MasterRGBGain = 1.35}); local e = item:GetFusionCompByIndex(1):AddTool("EllipseMask")
 e:SetInput("Center", {0.25, 0.45}); e:SetInput("Width", 0.3); e:SetInput("Height", 0.45); e:SetInput("SoftEdge", 0.1); cr.EffectMask = e.Mask

@@ -25,7 +25,7 @@ files cover what the API can't (Fairlight mixes, grades, Fusion macros), and a G
    - How it works: free 21.1 blocks external and Python scripting. `rv` writes Lua into `~/resolve-bridge/req.lua`, and `bridge.lua` (a loop in Resolve's console) runs it with the full API plus the `R` helpers (`scripts/lib.lua`, `references/api.md`), then writes the reply (every returned value, tab-separated). `rv` warns if a Resolve dialog is open, because API calls fail silently behind modals.
 3. **Intake and analyze.** Contact sheets (`sheet.py`), reference pacing (`analyze.py cuts`), music beats (`analyze.py beats`), speech (`transcribe.py --hotwords "names"`), pauses (`analyze.py silence`). Look at the sheets yourself. `references/recipes.md` §0.
 4. **PLAN, checkpoint 1.** Write `~/videos/<project>/plan.md` (deliverables, structure with timings, shot list in frames, look, fonts, music licence, questions). Show it and wait for approval.
-5. **Prep media.** `prep.py transcode` (Linux can't decode H.264/HEVC/AAC; it also reframes), `prep.py still`, `prep.py carriers`. Sources stay untouched.
+5. **Prep media.** `prep.py transcode` (Linux can't decode H.264/HEVC/AAC; MP3, WAV and ProRes import directly; it also reframes), `prep.py still`, `prep.py carriers`. Sources stay untouched.
 6. **Build.** A small `build.lua` with shot data at the top. Pick the route per job from `references/capability-matrix.md`, then follow the page reference:
 
    | Page | Reference | Main tools |

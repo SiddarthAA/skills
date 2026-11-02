@@ -45,14 +45,16 @@ item:AddFlag("Green") ; item:ClearFlags("All") ; item:SetClipColor("Pink") ; ite
 item:GetLeftOffset() ; item:GetSourceStartTime() ; item:GetTrackTypeAndIndex() ; item:GetLinkedItems() ; tl:SetClipsLinked(items, false)
 item:AddTake(mpi, startFrame, endFrame) ; item:SelectTakeByIndex(2) ; item:FinalizeTake() ; item:DeleteTakeByIndex(2)
 tl:CreateCompoundClip(items, {name = "cc"}) ; tl:CreateFusionClip(items) ; tl:DuplicateTimeline("v2")   -- the duplicate becomes current
-tl:SetStartTimecode("00:59:50:00") ; tl:GetSettings() (69 keys) ; tl:SetSettings({...}) ; tl:SetOutputBlanking({top=0.1, bottom=0.1})
+tl:SetStartTimecode("00:59:50:00") ; tl:GetSettings() (69 keys) ; tl:SetSettings({...}) ; tl:SetOutputBlanking({top = 138, bottom = 942})
 tl:Export(path, resolve.EXPORT_FCPXML_1_10 | EXPORT_EDL | EXPORT_OTIO | EXPORT_TEXT_CSV | EXPORT_DRT, resolve.EXPORT_NONE)
 tl:Export(path, resolve.EXPORT_AAF, resolve.EXPORT_AAF_NEW)
 mp:ImportTimelineFromFile(path, {timelineName = "x"})   -- FCPXML: point at x.fcpxml/Info.fcpxml (it's a folder); EDL ok; DRT keeps its own name
 tl:DeleteClips(items, ripple)   -- pass linked audio too
 ```
-- **Transitions are items too**: after AddTransition, `GetItemListInTrack` (and `R.items`) include them and clip indexes shift. Filter with
-  `it:GetType() == "video"` (transitions return "transition") or keep the items `R.place` returned.
+- **Transitions are items too**: after AddTransition, `GetItemListInTrack` includes them (`it:GetType()` = "transition") and clip indexes
+  shift. `R.items` skips them.
+- **`SetOutputBlanking` takes pixel rows, both from the TOP edge**: the picture shows between `top` and `bottom` [L]. Fractions or a
+  bottom margin black out the whole frame. Letterbox 2.39:1 at 1080p = `{top = 138, bottom = 942}`; it applies after the grade and titles, in renders too.
 - Own timelines: delete with `R.mp():DeleteTimelines({tl})` (only ones you made). Source range of an item: `GetSourceStartFrame()`/`GetSourceEndFrame()`
   (check handles before centred transitions).
 - **AppendToTimeline happily places a source range past the clip's end** (frozen last frame, no handles); `R.place` asserts against it.

@@ -35,6 +35,9 @@ fi
 for size in 1080x1920 1920x1080 1080x1350 1080x1080; do
   for fps in 30; do "$SKILL/scripts/prep.py" carriers "$size" --fps "$fps" --out "$B/assets" >/dev/null; done
 done
+for size in 1920x1080 1080x1920; do  # 24 fps (cinematic pieces); other rates: R.carrier's error prints the command
+  [ -f "$B/assets/carrier_${size}_24.mov" ] || "$SKILL/scripts/prep.py" carriers "$size" --fps 24 --out "$B/assets" >/dev/null
+done
 say "carriers in $B/assets (more: prep.py carriers WxH --fps N --out $B/assets)"
 
 # 4. LUTs: SetLUT only accepts files inside Resolve's master LUT folder

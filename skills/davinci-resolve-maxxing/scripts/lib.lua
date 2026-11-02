@@ -215,7 +215,14 @@ function R.keep(tl, clip, ranges, o)
 end
 
 -- Items on one track, ordered as Resolve returns them.
-function R.items(tl, kind, track) return (tl or R.tl()):GetItemListInTrack(kind or "video", track or 1) or {} end
+-- Clips on one track, in order. Transitions are timeline items too (GetType() "transition") and would shift the indexes: skipped.
+function R.items(tl, kind, track)
+  local out = {}
+  for _, it in ipairs((tl or R.tl()):GetItemListInTrack(kind or "video", track or 1) or {}) do
+    if it:GetType() ~= "transition" then out[#out + 1] = it end
+  end
+  return out
+end
 
 -- Human-readable map of the whole timeline.
 function R.dump(tl)
@@ -434,12 +441,17 @@ function R.fx(item, id, params)
   else
     t = assert(comp:AddTool(id), "AddTool failed: " .. id)
   end
+  for k in pairs(params or {}) do  -- SetInput on a wrong ID is silently ignored: check BEFORE wiring, so a typo leaves no half-built tool
+    if not t[k] then
+      if not head then t:Delete() end
+      error("no input '" .. k .. "' on " .. id .. "; R.inputs(tool) lists them", 2)
+    end
+  end
   local main = (head or t):FindMainInput(1)  -- nil for generators/titles: their output simply replaces the picture
   if main then main:ConnectTo(mo.Input:GetConnectedOutput() or comp:FindTool("MediaIn1").Output) end
   mo.Input:ConnectTo(t:FindMainOutput(1))  -- macros output on "MainOutput1", tools on "Output"
   local keyed = false
-  for k, v in pairs(params or {}) do  -- SetInput on a wrong ID is silently ignored: check it exists
-    assert(t[k], "no input '" .. k .. "' on " .. id .. "; R.inputs(tool) lists them")
+  for k, v in pairs(params or {}) do
     if type(v) == "table" and type(v[1]) == "table" then key(t, k, v); keyed = true else t:SetInput(k, v) end
   end
   if keyed and t.ID:match("^ofx%.") then

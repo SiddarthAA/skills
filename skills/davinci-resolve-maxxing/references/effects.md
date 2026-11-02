@@ -32,7 +32,7 @@ or rebuild from §5 with other numbers.
 | `glitch` | 12-frame glitch burst: jumping RGB split, jolts, JPEG blocks, then clean | the key tables |
 | `vhs` | horizontal smear, colour bleed, fine scanlines, grain, faded colour | Blur X, ScanlineV2 frequency |
 | `film-look` | light grain + soft oval vignette | FilmGrain Strength, Vignette size |
-| `letterbox` | 2.39:1 black bars (16:9 timelines) | RectangleMask Height |
+| `letterbox` | 2.39:1 black bars on ONE clip (16:9). For a whole piece use `tl:SetOutputBlanking({top = 138, bottom = 942})` instead: after the grade, over titles, in renders [L] | RectangleMask Height |
 | `black-white` | punchy black and white | Saturation 0, Contrast |
 | `glow` | soft bloom on highlights | SoftGlow Threshold/Gain |
 | `light-leak` | procedural warm light leak drifting across, screened over the clip | FastNoise colours, Merge Blend |
@@ -174,7 +174,7 @@ local x = R.fx(item, "Transform", {Size = 1.1}); R.track(item, x, "Center", "/ab
 
 ## 7. Speed, composites, overlays [L]
 ```lua
-R.fx(item, "TimeStretcher", {SourceTime = {{0, 0}, {30, 30}, {89, 30}, ease = "hold"}})   -- freeze frame from frame 30 (verified identical)
+R.fx(item, "TimeStretcher", {SourceTime = {{0, 0}, {30, 30}, {89, 30}}})   -- plays to 30, then freezes (linear keys: "hold" would freeze 0-29 too)
 R.fx(item, "TimeStretcher", {SourceTime = {{0, 89}, {89, 0}}})                            -- reverse (frame 0 = the last source frame)
 R.fx(item, "TimeStretcher", {SourceTime = {{0, 0}, {30, 15}, {60, 22}, {89, 80}}})        -- speed ramp (pages/fusion.md)
 -- split screen 50/50, each clip's centre: crop in source pixels, pan in timeline pixels

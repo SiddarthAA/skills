@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # Bring free DaVinci Resolve (Linux/X11) to a scriptable state and start the Lua bridge. Safe to rerun.
-# Usage: resolve-up [project-name]    (saves the current project, then loads project-name, or CREATES it if it doesn't exist)
+# Usage: resolve-up [project-name]    (saves the current project, then loads project-name, or CREATES it if it doesn't exist;
+#   Resolve stays on project-name: run resolve-up <previous-name> to go back)
 #   1. clicks "Ignore" on a leftover crash report (never "Send": that uploads data)
 #   2. launches Resolve if needed, waits for the Project Manager, opens the most recent project (first tile)
 #   3. closes modal windows (Project Settings, Preferences, dialogs) that would swallow keystrokes
 #   4. starts bridge.lua in the Lua Console, then loads/creates project-name through the API
 set -u
-case "${1:-}" in -h|--help) sed -n '2,7p' "$0"; exit 0 ;; -*) echo "resolve-up: project names can't start with '-' ($1)" >&2; exit 2 ;; esac
+case "${1:-}" in -h|--help) sed -n '2,8p' "$0"; exit 0 ;; -*) echo "resolve-up: project names can't start with '-' ($1)" >&2; exit 2 ;; esac
 DIR=$(dirname "$(readlink -f "$0")")
 XDO=$(command -v xdotool || command -v xdo) || { echo "resolve-up: xdotool missing (run install.sh)" >&2; exit 1; }
 RESOLVE=${RESOLVE_BIN:-/opt/resolve/bin/resolve}
@@ -14,6 +15,11 @@ log(){ echo "resolve-up: $*" >&2; }
 win(){ $XDO search --onlyvisible --name "$1" 2>/dev/null | head -1; }
 alive(){ pgrep -f "^$RESOLVE" >/dev/null; }  # the main process renames itself "GUI Thread": match the command line
 bridge(){ RV_TIMEOUT=${1:-3} "$DIR/rv" 'return "ok"' >/dev/null 2>&1; }
+# NVIDIA: after a suspend/resume CUDA often stays dead (cuInit = 999) and Resolve stops at "Unsupported GPU Processing Mode"
+cuda_ok(){ python3 -c 'import ctypes, sys
+try: c = ctypes.CDLL("libcuda.so.1")
+except OSError: sys.exit(0)
+sys.exit(c.cuInit(0))' 2>/dev/null; }
 load(){
   RV_TIMEOUT=5 "$DIR/rv" 'reload() return 1' >/dev/null 2>&1  # pick up lib.lua edits made while the bridge ran
   [ -z "${1:-}" ] && return 0
@@ -42,7 +48,11 @@ if [ -n "$crash" ]; then  # Ignore sits at (365,341) in the 550x373 report windo
 fi
 
 if [ -z "$(win '^DaVinci Resolve - ')" ]; then
-  alive || { setsid nohup "$RESOLVE" >/dev/null 2>&1 < /dev/null & disown; log "launching Resolve"; }
+  if ! alive; then
+    cuda_ok || { log "CUDA is down (cuInit fails, usual after suspend/resume): Resolve can't process. Fix with Resolve closed:"
+                 log "  sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm   (or reboot), then rerun"; exit 1; }
+    setsid nohup "$RESOLVE" >/dev/null 2>&1 < /dev/null & disown; log "launching Resolve"
+  fi
   for _ in $(seq 90); do
     [ -n "$(win '^Project Manager$')" ] || [ -n "$(win '^DaVinci Resolve - ')" ] && break
     sleep 2

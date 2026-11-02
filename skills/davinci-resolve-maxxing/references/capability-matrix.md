@@ -5,10 +5,10 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 ✓ = verified in the lab (free 21.1.1, Ubuntu 24.04). Details live in `pages/<page>.md`.
 
 ## Scorecard
-| Measure | 2026-10-29 (before) | now (2026-10-31 / 11-01 runs) |
+| Measure | 2026-10-29 (before) | now (2026-10-31 / 11-02 runs) |
 |---|---|---|
-| API methods exercised (of 416 in the 21.1 stub) | 149 (36%) | **400 (96%)**. Untouched: cloud projects + SetCurrentDatabase (5), burn-in presets (3), mattes (3), clone tool settings/stop (2), Quit, EncryptDCTL, RegenerateMagicMask |
-| Blind validation runs (fresh agents, skill only) | 1 (talking-head reel) | **5** (+ effects/edit, Fairlight mix, Color grade, captioned vertical delivery); every friction point fixed |
+| API methods exercised (of 416 in the 21.1 stub) | 149 (36%) | **401 (96%)**. Untouched: cloud projects + SetCurrentDatabase (5), burn-in presets (3), mattes (3), clone tool settings/stop (2), EncryptDCTL, RegenerateMagicMask |
+| Blind validation runs (fresh agents, skill only) | 1 (talking-head reel) | **6** (+ effects/edit, Fairlight mix, Color grade, captioned vertical delivery, a 23 s 9:16 recap reel built in the studio with presets, whips, title animations, LUT group, SFX on hits: -14 LUFS, no black frames); every friction point fixed or documented |
 | ResolveFX usable from script | 0 of 53 (rendered black) | **53 of 53** attach and render through Fusion (41 change the frame at defaults; 12 are identity until set) |
 | Fusion tools proven | 6 | any tool via `R.fx` (registry of about 500) + expressions + `.setting` macros |
 | Fusion templates usable | 0 | **417** built-in via `R.fx` (CCTV, Watermark, Binoculars, DVE, Headline title verified) |

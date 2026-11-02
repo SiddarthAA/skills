@@ -44,6 +44,7 @@ Built-in templates (`R.templates`, unpacked by install.sh) add more, applied the
 - **Effects** (`Edit/Effects/<name>.setting`, on the clip): Hologram Glitch, Night Vision, Video Call (window frame), Pen Stroke Circle/Arrow/Line
   (hand-drawn annotation), Drone Overlay (HUD), CCTV, Binoculars, DSLR, DVE, Watermark, Slice, Repeat, Highlight Stretch, Stretch Region, Noise
   Distortion, Energy Mask, Paper Edge, Colored Border, Outer Stroke, Arrow Name, Flying Flag, Graphic Cross/Shape Overlay, Shape Circle, Video Camera.
+  Checked on stills [L]: Hologram Glitch, Night Vision, Video Call, Pen Stroke Circle, Drone Overlay, CCTV, Binoculars, DVE, Watermark.
   **Comic Book renders BLACK and Digital Glitch fails R.still** [L]: avoid them.
 - **Titles** (`Edit/Titles/<name>.setting`, on a carrier, ~120): lower thirds (Clean and Simple, Digital Glitch, Text Box Swipe In, Simple Box
   2 Lines, Callout Title Left/Right, Drop In, Fade On, Flip Up, Lift, Jitter, Scale Up, Vertical Reveal... "Lower Third" variants), headline styles
@@ -83,7 +84,7 @@ on the clip BEFORE the cut (centre needs source handles on both clips). All 67 F
 mid-transition on stills.
 | Use | Fusion templates (`category = "fusion"`) |
 |---|---|
-| Whip / swipe | **Pan Left, Pan Right, Pan Up, Pan Down** (whip pans with blur), Slide Left/Right/Up/Down, Slice Push, Slide and Hold |
+| Whip / swipe | **Pan Left, Pan Right, Pan Up, Pan Down** (whip pans with blur; the image mirrors mid-whip, so avoid them over text), Slide Left/Right/Up/Down, Slice Push, Slide and Hold |
 | Zoom / speed | **Crash Zoom**, Zoom In, Zoom In and Out, Stretch Blur, Tunnel of Light |
 | Flash | **Brightness Flash**, Inverse Flash, Three Color Flash, Glow |
 | Glitch / digital | **Glitch**, Block Glitch, RGB Splitter, Shash, Posterize, Mosaic, Mosaic Center/Edge Wipe, Mosaic Dissolve, Noise Dissolve, Detail Dissolve |

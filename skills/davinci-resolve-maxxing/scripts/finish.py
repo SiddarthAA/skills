@@ -116,6 +116,9 @@ def main():
             if name == "hero":
                 ff("-i", a.master, "-an", "-c:v", "libvpx-vp9", "-b:v", "0", "-crf", "36", "-row-mt", "1", dst[:-4] + ".webm")
         reports.append(qa(dst, has_audio and name != "hero", fps))
+        if reports[-1].get("true_peak", -99) > -0.5:  # loudnorm can't undo a clipped master
+            print(f"finish.py: WARNING {dst}: true peak {reports[-1]['true_peak']} dBTP, target -1. The mix clips: lower music/SFX "
+                  "in Resolve (recipes.md, mix levels) and render the master again", file=sys.stderr)
     print(json.dumps(reports, indent=1))
 
 

@@ -289,8 +289,8 @@ end
 
 -- Title on its own track with exact timing. NEVER use InsertTitleIntoTimeline/InsertFusionTitleIntoTimeline
 -- on a real edit: they ripple-insert 5 s on V1 at the playhead.
--- o: text, at, len, track(2), font/style (default R.default_font()), size (Text+ Size: 0.05 caption, 0.08 subhead, 0.16 headline),
---    color{r,g,b}, center{x,y} (0..1, y up), tracking(0), outline{r,g,b,thickness},
+-- o: text, at, len, track(2), font/style (default R.default_font()), size (Text+ Size, a fraction of frame WIDTH; 16:9: 0.05 caption, 0.08 subhead, 0.16 headline; 9:16: 0.2 line, 0.55 full-width word),
+--    color{r,g,b}, center{x,y} (0..1, y up), tracking(0), outline{r,g,b,thickness} (doesn't stick in the same rv call: set it again, gotchas.md),
 --    anim: "pop" (default) | "fade" | "type" | "words" | "rise" | "slide" | "none"; speed = frames (per line, word or letter)
 -- Returns item, comp, text tool.
 -- First bold sans Fusion can see (Open Sans is NOT installed on stock Ubuntu; DejaVu Sans is).

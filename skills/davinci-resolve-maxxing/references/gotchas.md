@@ -11,6 +11,9 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | Edit-page zoom on a clip with a Fusion DropShadow | The shadow is drawn on the full frame BEFORE the Edit-page scale, so none shows around the PiP [L] | Scale inside Fusion (`R.fx(it, "Transform", {Size = 0.35})`) then DropShadow |
 | `Trails` (echo) | Nothing in random-access stills (it needs sequential frames) [L] | Check a real render, or fake echo with several offset Merges |
 | Built-in effect templates **Comic Book** (renders black) and **Digital Glitch** (R.still fails) | [L] | Hologram Glitch, the `glitch` preset, or the Glitch transition |
+| `R.title{outline = {...}}` (added 2026-11-02, E2E run) | The outline colour/thickness set in the same `rv` call as R.title read back as Text+'s default thin RED outline [L] | Set `Red2/Green2/Blue2/Thickness2` again on the Text+ in a SECOND `rv` call (`txt.StyledText:GetConnectedOutput()` tool too for `anim = "rise"`) |
+| `anim = "rise"` with an outline | The Follower shades each letter, so its own (red) outline shows before the letters fade in [L] | In that second call also set the Follower's `Red2/Green2/Blue2`, and key its `Opacity2` like `Opacity1` |
+| Pan Left/Right (whip) transitions over text | The image mirrors mid-whip, so text reads backwards for a few frames [L] | Fine on footage; over a title use Slide or Push |
 | A keyframed `Center` of a pasted preset (e.g. the lower third's text) | `SetInput("Center", ...)` is ignored: the XYPath drives it [L] | Move the whole overlay with the carrier's `Pan`/`Tilt`, or re-key it |
 
 ## Things that crash or freeze Resolve
@@ -91,7 +94,8 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 - **Debug log:** `~/.local/share/DaVinciResolve/logs/ResolveDebug.txt` (Fusion ERRORs such as missing fonts, plus crash dumps). After a crash it moves to `logs/LogArchive/ResolveDebug_C1.txt` [L].
 - **Edits are saved by Resolve automatically**, but call `R.save()` before risky operations.
 - **After a laptop suspend, CUDA dies** (cuInit 999) and Resolve shows "Unsupported GPU Processing Mode" at launch. Fix with Resolve closed:
-  `sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm` (the user runs it) [L].
+  `sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm` (the user runs it) [L]. A Resolve left open over the suspend shows "The GPU failed to
+  perform image processing" (error 719) instead: `rv 'R.save() resolve:Quit()'`, fix CUDA, relaunch. `resolve-up` checks CUDA before launching and prints the fix.
 - **Resolve reuses top-level X windows: titles go stale**, so identify panels by screenshot; popups are windows titled `resolve`; popup list clicks can
   miss (use the keyboard); drags need gradual motion (`gui drag`) [L]. `references/gui.md`.
 - Right after `OpenPage`, the first `SetCurrentTimecode` can be dropped, and on the Fusion page it is ignored [L]: `R.seek`.

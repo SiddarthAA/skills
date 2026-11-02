@@ -114,10 +114,20 @@ R.place(tl, "song.wav", {at = 0, media = "audio", track = 1})
 for _, cut in ipairs({330, 361, 389}) do R.place(tl, "whoosh.wav", {at = cut - 5, media = "audio", track = 2}) end
 return R.dump(tl)
 ```
-- White flash into a payoff: place a 10-frame white clip on V2 (`ffmpeg -f lavfi -i color=white:s=1080x1920:r=30 -t 1 -c:v prores_ks white.mov`, then prep) and `R.fade(item, 0, 8)`.
+- Effects on hits: presets from `effects.md` (`R.fx(it, R.effects .. "zoom-punch.setting")`, `impact-shake`, `glitch`, `flash-in`,
+  `zoom-blur-in`, `strobe`, `rgb-split`); their keys start at the clip's first frame, so put them on the shot that STARTS on the beat.
+- Transitions with energy: `prev:AddTransition({type = "Pan Left", category = "fusion", position = "end", alignment = "center", duration = 10})`
+  (whip), "Crash Zoom", "Glitch", "Brightness Flash", "RGB Splitter" (all 67 in `effects.md` §3). One family per video.
+- Titles that move: `R.title(tl, {..., anim = "rise"})` (letters rise in turn), `"words"` (word by word), `"type"`, `"slide"`.
+- White flash into a payoff: the `flash-in` preset on the payoff shot, the "Brightness Flash" transition, or a 10-frame white clip on V2
+  (`ffmpeg -f lavfi -i color=white:s=1080x1920:r=30 -t 1 -c:v prores_ks white.mov`, then prep) with `R.fade(item, 0, 8)`.
 - Black beat before the drop: just leave a gap on V1.
+- **Mix levels** (E2E run, 2026-11-02): music + SFX at 0 dB clip the master (+1.6 dBTP), and `finish.py` can't undo that. Start with music
+  at -6 dB and SFX at -8 to -10 dB (`item:SetProperty("AudioVolume", -6)`, `pages/fairlight.md`), give every SFX a 6-frame fade out
+  (`it:SetFades({FadeOut = 6})`; a hard cut clicks), and re-render if `finish.py` warns about the true peak.
 - Picture-in-picture: put the inset clip on V2 with `item:SetProperties({ZoomX=0.7, ZoomY=0.7, CropTop=..., CropBottom=...})`, or pre-composite it with ffmpeg.
-- Grain/vignette: a mid-grey noise clip on the top track with `SetProperties({CompositeMode = resolve.COMPOSITE_OVERLAY, Opacity = 70})`.
+- Grain/vignette: the `film-look` preset per clip (or on a compound clip of the whole sequence); or a grain/light-leak clip on the top
+  track with `SetProperties({CompositeMode = resolve.COMPOSITE_SCREEN, Opacity = 70})`. Grade the look with `R.group` + LUT or `R.curve`.
 - Copyrighted reference audio is for timing only. The deliverable uses licensed music, or no music so platform audio can be attached in-app.
 
 ## B. Product demo / screen recording (16:9 or 9:16)
@@ -186,7 +196,7 @@ $S/finish.py master.mov --to reels --subs $W/captions.srt --size 72 --name 20261
 
 1. Structure (30 s): hook 0-3 s (best moment), context 3-8 s (lower third: event, place, date), build 8-22 s (escalating montage, 1-2 sound bites of 8 s or less), payoff 22-27 s, CTA / end card for the last 2-4 s.
 2. Music bed cut on bars (`bars_f`), ending on the track's own ending.
-3. Lower third:
+3. Lower third: the `lower-third` preset (`effects.md` §1: red bar wipes in, text slides up), any of the ~120 title templates, or plain titles:
 ```lua
 R.title(tl, {text = "Asha Rao", at = 95, len = 120, font = "Open Sans", style = "Bold", size = 0.05, center = {0.25, 0.2}, anim = "fade", track = 3})
 R.title(tl, {text = "Founder, Acme", at = 100, len = 115, font = "Open Sans", style = "Regular", size = 0.035, center = {0.25, 0.16}, anim = "fade", track = 4})

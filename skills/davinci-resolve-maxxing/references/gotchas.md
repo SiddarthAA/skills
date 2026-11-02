@@ -11,8 +11,7 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | Edit-page zoom on a clip with a Fusion DropShadow | The shadow is drawn on the full frame BEFORE the Edit-page scale, so none shows around the PiP [L] | Scale inside Fusion (`R.fx(it, "Transform", {Size = 0.35})`) then DropShadow |
 | `Trails` (echo) | Nothing in random-access stills (it needs sequential frames) [L] | Check a real render, or fake echo with several offset Merges |
 | Built-in effect templates **Comic Book** (renders black) and **Digital Glitch** (R.still fails) | [L] | Hologram Glitch, the `glitch` preset, or the Glitch transition |
-| `R.title{outline = {...}}` (added 2026-11-02, E2E run) | The outline colour/thickness set in the same `rv` call as R.title read back as Text+'s default thin RED outline [L] | Set `Red2/Green2/Blue2/Thickness2` again on the Text+ in a SECOND `rv` call (`txt.StyledText:GetConnectedOutput()` tool too for `anim = "rise"`) |
-| `anim = "rise"` with an outline | The Follower shades each letter, so its own (red) outline shows before the letters fade in [L] | In that second call also set the Follower's `Red2/Green2/Blue2`, and key its `Opacity2` like `Opacity1` |
+| A Text+ Follower that fades letters in with `Opacity1` only | The outline (element 2) isn't faded, so outlines show before their letters [L] | Key `Opacity2` the same way (R.title `anim = "rise"` does since 2026-11-03). The Follower's own `Red2`/`Thickness2` read back as defaults but don't override the Text+ outline |
 | Pan Left/Right (whip) transitions over text | The image mirrors mid-whip, so text reads backwards for a few frames [L] | Fine on footage; over a title use Slide or Push |
 | A keyframed `Center` of a pasted preset (e.g. the lower third's text) | `SetInput("Center", ...)` is ignored: the XYPath drives it [L] | Move the whole overlay with the carrier's `Pan`/`Tilt`, or re-key it |
 

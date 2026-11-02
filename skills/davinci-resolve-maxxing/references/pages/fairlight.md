@@ -13,11 +13,19 @@ Coordinates assume a 1920x1080 screen, maximized main window (1854x1048), defaul
 | **Whole mix: per-track EQ + dynamics + insert FX + Ducker** | **Template** | Build once in the GUI, save a *Fairlight Configuration preset*, then `R.project():ApplyFairlightPresetToCurrentTimeline(name)` on any timeline with the same track layout [L]: a blind run's applied render was bit-identical to the hand-built one |
 | Track EQ | Template file | `fl_eq.py NAME --hp 80 --band 3:300:-2 --band 5:5000:2.5` writes the XML; Resolve lists it immediately [L]. Band shapes are fixed: **2 = low shelf, 3-4 = bells, 5 = high shelf** (use band 3 or 4 for a bell). Frequencies snap to 257 log steps per range (350 Hz shows as 348). Apply with the Presets Library (below) |
 | Track compressor/gate/limiter | Template file / GUI | Ship XML in `assets/fairlight/DYN/` (values are indices: save from the GUI, then copy) [L] |
-| Ducking music under voice | GUI once, then config preset | Ducker in the Inspector (below); config presets carry it [L]. **The Ducker has no threshold**: with a voice track whose room noise sits around -44 dBFS it held a constant cut (exactly the Duck Level, in pauses too) [L]. For music that rises in pauses: split the bed at speech boundaries (`analyze.py silence` on the voice) with `R.keep`/`R.place`, `R.volume(piece, -10)` under speech plus `R.fade` ramps (API), or gate the voice first (untested) |
+| Ducking music under voice | GUI once, then config preset | Ducker in the Inspector (below); config presets carry it [L]. **The Ducker has no threshold**: with a voice track whose room noise sits around -44 dBFS it held a constant cut (exactly the Duck Level, in pauses too) [L]. For music that rises in pauses: split the bed at speech boundaries (`analyze.py silence` on the voice) with `R.keep`/`R.place`, `R.volume(piece, -10)` under speech plus `R.fade` ramps (API). **Real ducking with a threshold: ffmpeg before import** (below) [L] |
 | Insert Fairlight FX (reverb, de-esser, noise reduction...) | GUI | Mixer "Effects +" menu [L]; plugin presets are binary `.dat` (save from the GUI) |
 | Buses and sends | GUI | Fairlight > Bus Format, mixer "Bus Sends" [L] |
 | Automation, ADR, recording | GUI only | Manual ch. 173-178. Not needed for agent edits |
 | Voice isolation, Dialogue Separator, Music Remixer | Studio | Not on free. `tl:SetVoiceIsolationState` returns true but does nothing useful [L]. Clean up with ffmpeg (`afftdn`, `highpass`) before import |
+
+**Ducking with a threshold, outside Resolve** [L 2026-11-03]: duck the music bed against the voice as it plays in the edit (a VO placed
+uncut, or the dialogue from a music-free render), then import the result as the bed:
+```bash
+ffmpeg -i music.wav -i voice.wav -filter_complex "[0:a][1:a]sidechaincompress=threshold=0.02:ratio=20:level_sc=4:attack=50:release=500[d]" -map "[d]" music_ducked.wav
+```
+Measured: under a -31.5 dB camera voice the bed went -18.3 -> -31.7 dB during speech and stayed -16.6 dB in a pause. `level_sc` scales the
+key: about 4 for a quiet camera voice, 1 for a VO near -20 dB. Check a speech window and a pause with `volumedetect`.
 
 There's no API for track EQ, dynamics, inserts, buses or ducking. The template route covers them, so the GUI is a one-time setup.
 

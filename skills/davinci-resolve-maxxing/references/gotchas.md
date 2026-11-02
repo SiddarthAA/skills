@@ -68,7 +68,7 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | `mp:ImportTimelineFromFile(fcpxml)` silently changes the PROJECT resolution and imports items as Scaling = fit [L] | Save and restore the project resolution; set `Scaling = 0` / scaleToCrop (`pages/edit.md`) |
 | Resolve's subtitle burn-in on 9:16 sits below the safe zone and clips long lines [L] | `--max-chars 16`, style in the GUI, or `finish.py --subs` |
 | `LoadRenderPreset` doesn't reset a format/codec/name set earlier [L] | Set them explicitly every time (R.render) |
-| The Fairlight Ducker has no threshold: over a voice track with room noise it applies a constant cut, pauses included [L] | Cut-and-lower the music by API where pauses matter (`pages/fairlight.md`) |
+| The Fairlight Ducker has no threshold: over a voice track with room noise it applies a constant cut, pauses included [L] | Duck the bed with ffmpeg `sidechaincompress` before import, or cut-and-lower by API (`pages/fairlight.md`) |
 | `SetTrackEnable("audio", n, false)` returns true, but the track still plays in renders [L] | `AudioVolume = -100` on its clips |
 | EQ preset XML: `BAND_FREQ` is ignored; Resolve reads `BAND_LIMITED_FREQ` (a log index) [L] | `fl_eq.py` |
 | DCTL as a LUT renders with a big "Studio" WATERMARK on free [L] | Bake .cube LUTs; look at the pixels after anything Studio-flavoured |

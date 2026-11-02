@@ -88,9 +88,9 @@ Fairlight XML/config preset, LUT, FCPXML, SRT) > **GUI** (`scripts/gui`: keys, n
 | Track dynamics | ✗ | ✓ XML (save from GUI) | ✓ fields | |
 | Insert FX (reverb, de-esser, NR...) | ✗ | ✓ config preset carries them | ✓ Effects + | |
 | Whole-mix template | ✓ `ApplyFairlightPresetToCurrentTimeline` | ✓ config preset | save once | Same track count |
-| Ducking | cut-and-lower via API | ✓ config preset carries the Ducker | ✓ Ducker | No threshold: a constant cut over room noise |
+| Ducking | cut-and-lower via API | ✓ config preset carries the Ducker | ✓ Ducker | No threshold: a constant cut over room noise. Threshold ducking: ffmpeg `sidechaincompress` [L] |
 | Buses / sends | ✗ | config preset (untested) | ✓ Bus Format | |
-| Automation, ADR, recording | ✗ | | GUI (untested) | Not needed for agent edits |
+| Automation, ADR, recording | ✗ | | GUI (untested) | Volume rides: split + `R.volume`/`R.fade`, or ffmpeg `volume`/`sidechaincompress` on the stem before import |
 | Voice isolation, dialogue separator | ✗ | | | Studio |
 
 ## Deliver

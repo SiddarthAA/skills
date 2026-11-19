@@ -11,6 +11,7 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | Edit-page zoom on a clip with a Fusion DropShadow | The shadow is drawn on the full frame BEFORE the Edit-page scale, so none shows around the PiP [L] | Scale inside Fusion (`R.fx(it, "Transform", {Size = 0.35})`) then DropShadow |
 | `Trails` (echo) | Nothing in random-access stills (it needs sequential frames) [L] | Check a real render, or fake echo with several offset Merges |
 | Built-in effect templates **Comic Book** (renders black) and **Digital Glitch** (R.still fails) | [L] | Hologram Glitch, the `glitch` preset, or the Glitch transition |
+| `item:SetFades` on a VIDEO clip, then a Resolve restart | The fade renders until the restart, then it is gone with no error, even after `R.save()` [L, 2026-11-03: fade-up brightness 12->47 became flat 47]. Audio came out sample-identical with and without re-applying | Re-apply fades in the session that renders, right before `R.render` |
 | `AddTransition` with a duration the handles can't fully cover | Comes out shorter (asked 14, got 9) with no error [L] | Read the transition item's `GetDuration()` back |
 | A video file whose first frame starts after 0 (an ffmpeg `-ss` trim or rate change: `ffprobe -show_entries stream=start_time`) | Resolve shows frame 0 BLACK (stills and renders) [L] | `prep.py transcode` pads it since 2026-11-03 (`fps=...:start_time=0`); re-transcode older files |
 | Text+ outline reverting to the thin red default later in a build (seen in 2 E2E runs, not reproduced in 8 lab tests) | Captions render with a thin red outline [L?] | Check a still; if red, loop over the title items and set `Red2/Green2/Blue2/Thickness2` again |
@@ -31,6 +32,7 @@ samuelgursky/davinci-resolve-mcp project (mostly Studio 21.x), not re-tested her
 | `print()` from helper code during a long bridge request | Crashed Resolve once (`FusionDoc::PrintFArgs`, 2026-11-03) [L] | Helpers use `R.warn` (comes back in the rv reply); prints in your own request chunk are captured safely |
 | Switching pages (`OpenPage`) while playback runs | Hangs the main thread and all scripting [R] | Never start playback from script |
 | Project-settings preset writes on a never-saved project | Project can't be opened again [R] | `pm:SaveProject()` first |
+| 4K Fusion-heavy timelines on a 16 GB machine: Resolve defaults to 75% of RAM (`config.dat`: `Local.Resource.ResolveMemoryPercentage`, `FusionMemoryPercentage`) and climbs past 8 GB within 30 s of a render | The kernel OOM killer takes Resolve (10.6 GB resident at 190 frames, 2026-11-03) and systemd stops the launching tmux scope, killing the agent too. A `MemoryHigh` ceiling is WORSE: it stalls the render, memory pressure passes systemd-oomd's 50%, and oomd kills the whole desktop session [L] | `resolve-up` launches Resolve in its own scope with `MemoryMax` and no swap, so only Resolve dies. Never use `MemoryHigh`. `R.save()` before renders |
 
 ## Silent failures (call returns true, nothing happens)
 

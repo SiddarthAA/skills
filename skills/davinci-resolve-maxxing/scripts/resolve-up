@@ -51,7 +51,16 @@ if [ -z "$(win '^DaVinci Resolve - ')" ]; then
   if ! alive; then
     cuda_ok || { log "CUDA is down (cuInit fails, usual after suspend/resume): Resolve can't process. Fix with Resolve closed:"
                  log "  sudo rmmod nvidia_uvm && sudo modprobe nvidia_uvm   (or reboot), then rerun"; exit 1; }
-    setsid nohup "$RESOLVE" >/dev/null 2>&1 < /dev/null & disown; log "launching Resolve"
+    # Own systemd scope with a memory ceiling. In the launching shell's scope, an OOM kill of Resolve makes systemd stop that
+    # whole scope (OOMPolicy=stop): the tmux pane and the agent running in it die too.
+    # Never MemoryHigh here: it stalls Resolve instead of stopping it, memory pressure passes systemd-oomd's limit, and oomd
+    # kills the whole user session. MemoryMax with no swap makes the limit fail fast, and only Resolve dies.
+    if systemd-run --user --scope --quiet true 2>/dev/null; then
+      setsid nohup systemd-run --user --scope --quiet -p OOMPolicy=continue -p MemoryMax=62% -p MemorySwapMax=0 "$RESOLVE" >/dev/null 2>&1 < /dev/null & disown
+    else
+      setsid nohup "$RESOLVE" >/dev/null 2>&1 < /dev/null & disown
+    fi
+    log "launching Resolve"
   fi
   for _ in $(seq 90); do
     [ -n "$(win '^Project Manager$')" ] || [ -n "$(win '^DaVinci Resolve - ')" ] && break
